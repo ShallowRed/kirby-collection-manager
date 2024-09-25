@@ -1,0 +1,15 @@
+{
+	"name": "shallowred/kirby-collection-manager",
+	"description": "Kirby Example Plugin",
+	"license": "MIT",
+	"type": "kirby-plugin",
+	"authors": [
+		{
+			"name": "Your Name",
+			"email": "you@example.com"
+		}
+	],
+	"require": {
+		"getkirby/composer-installer": "^1.1"
+	}
+}
