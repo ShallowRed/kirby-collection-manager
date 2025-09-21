@@ -1,12 +1,12 @@
 {
 	"name": "shallowred/kirby-collection-manager",
-	"description": "Kirby Example Plugin",
+	"description": "A Kirby CMS plugin for advanced collection management with AJAX pagination, filtering, and search functionality",
 	"license": "MIT",
 	"type": "kirby-plugin",
 	"authors": [
 		{
 			"name": "Lucas Poulain",
-			"email": "you@example.com"
+			"email": "lucas@shallowred.com"
 		}
 	],
 	"require": {
