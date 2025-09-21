@@ -1,0 +1,341 @@
+/**
+ * Kirby Collection Manager - Utility Classes
+ * Additional utility classes for common use cases
+ */
+
+/* Layout Utilities */
+.collection-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.collection-grid--2-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.collection-grid--3-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.collection-grid--4-cols {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.collection-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.collection-flex--center {
+  justify-content: center;
+}
+
+.collection-flex--space-between {
+  justify-content: space-between;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .collection-grid--3-cols,
+  .collection-grid--4-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .collection-grid--2-cols,
+  .collection-grid--3-cols,
+  .collection-grid--4-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Loading States */
+.collection-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.collection-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.collection-loading::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2rem;
+  height: 2rem;
+  margin: -1rem 0 0 -1rem;
+  border: 2px solid #ddd;
+  border-top-color: #007acc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 11;
+}
+
+/* Dark mode loading */
+@media (prefers-color-scheme: dark) {
+  .collection-loading::after {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .collection-loading::before {
+    border-color: #555;
+    border-top-color: #0066cc;
+  }
+}
+
+/* Filter Controls */
+.collection-filters {
+  margin: 1rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.collection-filter {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  text-decoration: none;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.collection-filter:hover,
+.collection-filter:focus {
+  background: #f5f5f5;
+  border-color: #999;
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+.collection-filter--active {
+  background: #007acc;
+  color: white;
+  border-color: #007acc;
+}
+
+.collection-filter--active:hover,
+.collection-filter--active:focus {
+  background: #005999;
+  border-color: #005999;
+}
+
+/* Search Form */
+.collection-search {
+  margin: 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.collection-search__input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+}
+
+.collection-search__input:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+  border-color: #007acc;
+}
+
+.collection-search__submit {
+  padding: 0.75rem 1.5rem;
+  background: #007acc;
+  color: white;
+  border: 1px solid #007acc;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.collection-search__submit:hover,
+.collection-search__submit:focus {
+  background: #005999;
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive search */
+@media (max-width: 480px) {
+  .collection-search {
+    flex-direction: column;
+  }
+  
+  .collection-search__submit {
+    align-self: stretch;
+  }
+}
+
+/* Item Cards */
+.collection-item {
+  border: 1px solid #eee;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collection-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.collection-item__image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.collection-item__content {
+  padding: 1rem;
+}
+
+.collection-item__title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.collection-item__excerpt {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.collection-item__meta {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* Empty States */
+.collection-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.collection-empty__icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.collection-empty__title {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.collection-empty__message {
+  margin: 0;
+  max-width: 30rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.collection-item--fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .collection-filter {
+    background: #333;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+  
+  .collection-filter:hover,
+  .collection-filter:focus {
+    background: #444;
+    border-color: #777;
+  }
+  
+  .collection-search__input {
+    background: #333;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+  
+  .collection-item {
+    background: #333;
+    border-color: #555;
+    color: #e0e0e0;
+  }
+  
+  .collection-item__excerpt {
+    color: #ccc;
+  }
+  
+  .collection-item__meta {
+    border-color: #555;
+    color: #aaa;
+  }
+  
+  .collection-empty {
+    color: #ccc;
+  }
+  
+  .collection-empty__title {
+    color: #e0e0e0;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .collection-pagination,
+  .collection-filters,
+  .collection-search {
+    display: none;
+  }
+  
+  .collection-item {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}

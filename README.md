@@ -200,7 +200,7 @@ The plugin supports multiple languages through configuration:
   'pageIndicator' => 'Page {current} sur {total}',
 ]
 
-// German  
+// German
 'texts' => [
   'firstPage' => 'Zur ersten Seite',
   'prevPage' => 'Zur vorherigen Seite',
@@ -240,12 +240,67 @@ See `config/config.example.php` for more examples.
 
 ## Error Handling
 
-The plugin includes comprehensive error handling:
+The plugin includes comprehensive error handling and validation:
 
-- **PHP**: Validates required parameters and throws exceptions for missing data
-- **JavaScript**: Validates inputs and provides fallback to standard page navigation
-- **Network**: Graceful fallback when AJAX requests fail
-- **Debug Mode**: Enable with `debug: true` for detailed console logging
+### PHP Error Handling
+- **Debug Mode**: In debug mode (`debug: true` in Kirby config), exceptions are thrown for missing parameters
+- **Production Mode**: In production, errors are handled gracefully with silent failures
+- **Parameter Validation**: All snippet parameters are validated for type and content
+- **Pagination Validation**: Ensures collections have proper pagination methods
+
+### JavaScript Error Handling
+- **Input Validation**: All method parameters are validated before processing
+- **Network Errors**: HTTP errors are caught and handled with fallback navigation
+- **Abort Support**: Requests can be cancelled to prevent race conditions
+- **Memory Management**: Uses Map for Isotope instances and WeakMap for event listeners
+- **Resource Cleanup**: `destroy()` method for proper cleanup
+
+### Debug Mode
+Enable detailed logging in development:
+
+```javascript
+const manager = new CollectionManager({
+  contentRoute: '/blog',
+  debug: true // Enables console logging
+});
+```
+
+## TypeScript Support
+
+The plugin includes TypeScript definitions in `lib/index.d.ts`:
+
+```typescript
+import { CollectionManager, CollectionManagerOptions } from './lib/index.js';
+
+const options: CollectionManagerOptions = {
+  contentRoute: '/blog',
+  useIsotope: true,
+  debug: true
+};
+
+const manager = new CollectionManager(options);
+```
+
+## Advanced Usage
+
+### Memory Management
+```javascript
+// Clean up resources when done
+manager.destroy();
+```
+
+### Request Cancellation
+Requests are automatically cancelled when new ones are made, preventing race conditions.
+
+### Custom Validation
+```javascript
+// The library includes built-in validation for all inputs
+try {
+  await manager.paginate('invalid'); // Will throw validation error
+} catch (error) {
+  console.error('Validation failed:', error.message);
+}
+```
 
 ## Graceful Degradation
 
@@ -258,10 +313,41 @@ The plugin works without JavaScript enabled:
 
 ### Default CSS
 
-The plugin includes default CSS styles in `assets/collection-manager.css`. Include it in your template:
+The plugin includes comprehensive CSS files:
+
+- **Main styles**: `assets/collection-manager.css` - Core pagination and indicator styles
+- **Utility classes**: `assets/utilities.css` - Additional layout and component utilities
+
+Include them in your template:
 
 ```html
 <?= css('/site/plugins/kirby-collection-manager/assets/collection-manager.css') ?>
+<?= css('/site/plugins/kirby-collection-manager/assets/utilities.css') ?>
+```
+
+### Utility Classes
+
+The plugin provides helpful utility classes:
+
+```css
+/* Layout */
+.collection-grid, .collection-grid--2-cols, .collection-grid--3-cols
+.collection-flex, .collection-flex--center
+
+/* Loading states */
+.collection-loading
+
+/* Filter controls */
+.collection-filters, .collection-filter, .collection-filter--active
+
+/* Search forms */
+.collection-search, .collection-search__input, .collection-search__submit
+
+/* Item cards */
+.collection-item, .collection-item__content, .collection-item__title
+
+/* Empty states */
+.collection-empty, .collection-empty__title, .collection-empty__message
 ```
 
 ### CSS Framework Integration

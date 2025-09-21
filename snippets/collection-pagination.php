@@ -1,27 +1,50 @@
 <?php
 // Validate required collection parameter
 if (!isset($collection) || !$collection) {
-  throw new Exception('Collection parameter is required for collection-pagination snippet');
+  if (kirby()->option('debug')) {
+    throw new Exception('Collection parameter is required for collection-pagination snippet');
+  } else {
+    // In production, fail gracefully
+    return;
+  }
 }
 
-// Get plugin configuration
-$config = kirby()->option('shallowred.collection-manager', []);
-$paginationConfig = $config['pagination'] ?? [];
-$texts = $config['texts'] ?? [];
+// Validate that collection has pagination method
+if (!method_exists($collection, 'pagination')) {
+  if (kirby()->option('debug')) {
+    throw new Exception('Collection must be a paginated collection (use ->paginate() method)');
+  } else {
+    return;
+  }
+}
 
-// Set default values
-$range = $range ?? $paginationConfig['range'] ?? 10;
+// Get plugin configuration with proper fallbacks
+$config = kirby()->option('shallowred.collection-manager', []);
+$paginationConfig = is_array($config['pagination'] ?? null) ? $config['pagination'] : [];
+$texts = is_array($config['texts'] ?? null) ? $config['texts'] : [];
+
+// Set default values with validation
+$range = isset($range) ? (int) $range : (int) ($paginationConfig['range'] ?? 10);
+$range = max(1, min($range, 50)); // Clamp between 1 and 50
+
 $cssClasses = array_merge([
   'nav' => 'collection-pagination',
   'item' => 'collection-pagination__item',
   'icon' => 'collection-pagination__icon',
-], $paginationConfig['cssClasses'] ?? []);
+], is_array($paginationConfig['cssClasses'] ?? null) ? $paginationConfig['cssClasses'] : []);
 
-// Text configuration with fallbacks
-$firstPageText = $texts['firstPage'] ?? 'Go to first page';
-$prevPageText = $texts['prevPage'] ?? 'Go to previous page';
-$nextPageText = $texts['nextPage'] ?? 'Go to next page';
-$lastPageText = $texts['lastPage'] ?? 'Go to last page';
+// Text configuration with fallbacks and HTML escaping
+$firstPageText = esc($texts['firstPage'] ?? 'Go to first page');
+$prevPageText = esc($texts['prevPage'] ?? 'Go to previous page');
+$nextPageText = esc($texts['nextPage'] ?? 'Go to next page');
+$lastPageText = esc($texts['lastPage'] ?? 'Go to last page');
+
+// Validate CSS classes
+foreach ($cssClasses as $key => $class) {
+  if (!is_string($class) || empty(trim($class))) {
+    $cssClasses[$key] = 'collection-pagination__' . $key;
+  }
+}
 ?>
 
 <nav class="<?= $cssClasses['nav'] ?>" role="navigation" aria-label="Collection pagination">

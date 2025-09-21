@@ -130,14 +130,14 @@
   .collection-pagination ul {
     gap: 0.25rem;
   }
-  
+
   .collection-pagination__item a {
     min-width: 2rem;
     height: 2rem;
     padding: 0.25rem;
     font-size: 0.9rem;
   }
-  
+
   /* Hide first/last buttons on mobile */
   .collection-pagination__item--to-first,
   .collection-pagination__item--to-last {
@@ -149,7 +149,7 @@
   .collection-pagination ul {
     justify-content: space-between;
   }
-  
+
   /* Show only prev/next and current page on very small screens */
   .collection-pagination__item--to-number:not(:has([aria-current="page"])) {
     display: none;
@@ -189,22 +189,22 @@
     background: #333;
     border-color: #555;
   }
-  
+
   .collection-pagination__item a:hover,
   .collection-pagination__item a:focus {
     background: #444;
     border-color: #777;
   }
-  
+
   .collection-pagination__item a[aria-current="page"] {
     background: #0066cc;
     border-color: #0066cc;
   }
-  
+
   .current-page-indicator {
     color: #ccc;
   }
-  
+
   .collection-pagination__item--empty {
     color: #999;
   }
@@ -215,7 +215,7 @@
   .collection-pagination__item a {
     border-width: 2px;
   }
-  
+
   .collection-pagination__item a:focus {
     outline-width: 3px;
   }
@@ -226,7 +226,7 @@
   .collection-pagination__item a {
     transition: none;
   }
-  
+
   .collection-pagination--loading::after {
     animation: none;
   }

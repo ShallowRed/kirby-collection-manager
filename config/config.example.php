@@ -2,26 +2,26 @@
 
 /**
  * Kirby Collection Manager - Configuration Examples
- * 
+ *
  * Add these configurations to your site/config/config.php file
  * to customize the behavior of the Collection Manager plugin.
  */
 
 return [
   // Other Kirby config options...
-  
+
   /**
    * Collection Manager Plugin Configuration
    */
   'shallowred.collection-manager' => [
-    
+
     /**
      * Pagination Settings
      */
     'pagination' => [
       // Default number of page links to show in pagination
       'range' => 10,
-      
+
       // Customize CSS classes
       'cssClasses' => [
         'nav' => 'collection-pagination',
@@ -29,7 +29,7 @@ return [
         'icon' => 'collection-pagination__icon',
       ]
     ],
-    
+
     /**
      * Text/Language Configuration
      * Customize all text strings used by the plugin
@@ -37,17 +37,17 @@ return [
     'texts' => [
       // Pagination accessibility labels
       'firstPage' => 'Go to first page',
-      'prevPage' => 'Go to previous page', 
+      'prevPage' => 'Go to previous page',
       'nextPage' => 'Go to next page',
       'lastPage' => 'Go to last page',
-      
+
       // Page indicator formats
       // Use {current} and {total} as placeholders
       'pageIndicator' => 'Page {current} of {total}',
       'pageIndicatorShort' => 'p. {current} of {total}',
     ]
   ],
-  
+
   /**
    * Example: French Configuration
    */
@@ -64,7 +64,7 @@ return [
   //     'pageIndicatorShort' => 'p. {current} sur {total}',
   //   ]
   // ],
-  
+
   /**
    * Example: German Configuration
    */
@@ -78,7 +78,7 @@ return [
   //     'pageIndicatorShort' => 'S. {current} von {total}',
   //   ]
   // ],
-  
+
   /**
    * Example: Custom CSS Classes for Bootstrap
    */
@@ -91,7 +91,7 @@ return [
   //     ]
   //   ]
   // ],
-  
+
   /**
    * Example: Custom CSS Classes for Tailwind CSS
    */
