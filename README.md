@@ -159,7 +159,58 @@ const manager = new CollectionManager({
 await manager.loadIsotope();
 ```
 
-## Configuration Options
+## Configuration
+
+The plugin can be configured in your `site/config/config.php` file:
+
+```php
+return [
+  'shallowred.collection-manager' => [
+    'pagination' => [
+      'range' => 10, // Number of page links to show
+      'cssClasses' => [
+        'nav' => 'collection-pagination',
+        'item' => 'collection-pagination__item',
+        'icon' => 'collection-pagination__icon',
+      ]
+    ],
+    'texts' => [
+      'firstPage' => 'Go to first page',
+      'prevPage' => 'Go to previous page',
+      'nextPage' => 'Go to next page',
+      'lastPage' => 'Go to last page',
+      'pageIndicator' => 'Page {current} of {total}',
+      'pageIndicatorShort' => 'p. {current} of {total}',
+    ]
+  ]
+];
+```
+
+### Internationalization
+
+The plugin supports multiple languages through configuration:
+
+```php
+// French
+'texts' => [
+  'firstPage' => 'Aller à la première page',
+  'prevPage' => 'Aller à la page précédente',
+  'nextPage' => 'Aller à la page suivante',
+  'lastPage' => 'Aller à la dernière page',
+  'pageIndicator' => 'Page {current} sur {total}',
+]
+
+// German  
+'texts' => [
+  'firstPage' => 'Zur ersten Seite',
+  'prevPage' => 'Zur vorherigen Seite',
+  'nextPage' => 'Zur nächsten Seite',
+  'lastPage' => 'Zur letzten Seite',
+  'pageIndicator' => 'Seite {current} von {total}',
+]
+```
+
+See `config/config.example.php` for more examples.
 
 ### CollectionManager Constructor Options
 
@@ -169,6 +220,7 @@ await manager.loadIsotope();
 | `useIsotope` | `boolean` | `false` | Enable Isotope.js animations |
 | `isotopeOptions` | `object` | `{}` | Options passed to Isotope constructor |
 | `afterReplace` | `function` | `() => {}` | Callback after content replacement |
+| `debug` | `boolean` | `false` | Enable debug logging |
 
 ### Snippet Options
 
@@ -177,13 +229,60 @@ await manager.loadIsotope();
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `$collection` | `Collection` | **required** | The paginated collection |
-| `$range` | `integer` | `10` | Number of page links to show |
+| `$range` | `integer` | config value or `10` | Number of page links to show |
 
 #### current-page-indicator
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `$collection` | `Collection` | **required** | The paginated collection |
+| `$format` | `string` | config value | Custom format string with {current} and {total} placeholders |
+
+## Error Handling
+
+The plugin includes comprehensive error handling:
+
+- **PHP**: Validates required parameters and throws exceptions for missing data
+- **JavaScript**: Validates inputs and provides fallback to standard page navigation
+- **Network**: Graceful fallback when AJAX requests fail
+- **Debug Mode**: Enable with `debug: true` for detailed console logging
+
+## Graceful Degradation
+
+The plugin works without JavaScript enabled:
+- Pagination links work as normal page links
+- Forms submit normally
+- Content is accessible and functional
+
+## Styling
+
+### Default CSS
+
+The plugin includes default CSS styles in `assets/collection-manager.css`. Include it in your template:
+
+```html
+<?= css('/site/plugins/kirby-collection-manager/assets/collection-manager.css') ?>
+```
+
+### CSS Framework Integration
+
+#### Bootstrap
+```php
+'cssClasses' => [
+  'nav' => 'pagination justify-content-center',
+  'item' => 'page-item',
+  'icon' => 'page-link',
+]
+```
+
+#### Tailwind CSS
+```php
+'cssClasses' => [
+  'nav' => 'flex justify-center items-center space-x-2',
+  'item' => 'inline-block',
+  'icon' => 'px-3 py-2 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50',
+]
+```
 
 ## CSS Classes
 
