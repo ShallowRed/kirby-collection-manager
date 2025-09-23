@@ -51,7 +51,11 @@ foreach ($cssClasses as $key => $class) {
   <ul>
   <?php if ($collection->count() > 0) : ?>
   <?php $pagination = $collection->pagination() ?>
-    <?php if ($pagination->hasPrevPage()) : ?>
+    <?php
+    // Only show pagination controls if there are actually multiple pages
+    $showPagination = $pagination->pages() > 1;
+    ?>
+    <?php if ($showPagination && $pagination->hasPrevPage()) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first">
       <a href="<?= $pagination->firstPageURL() ?>" data-page="1" aria-label="<?= esc($firstPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--first" aria-hidden="true"></span>
@@ -66,6 +70,7 @@ foreach ($cssClasses as $key => $class) {
     </li>
     <?php endif ?>
 
+    <?php if ($showPagination) : ?>
     <?php foreach ($pagination->range($range) as $r) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-number">
       <a <?php
@@ -81,8 +86,9 @@ foreach ($cssClasses as $key => $class) {
       </a>
     </li>
     <?php endforeach ?>
+    <?php endif ?>
 
-    <?php if ($pagination->hasNextPage()) : ?>
+    <?php if ($showPagination && $pagination->hasNextPage()) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling">
       <a href="<?= $pagination->nextPageURL() ?>" data-page="<?= $pagination->nextPage() ?>" aria-label="<?= esc($nextPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--next" aria-hidden="true"></span>

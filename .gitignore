@@ -6,3 +6,6 @@
 
 # Composer files
 /vendor
+
+# demo project
+/demo
