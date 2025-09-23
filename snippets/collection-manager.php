@@ -18,44 +18,27 @@ $cssClass = trim($config['containers']['wrapper'] ?? '', '.');
   <?php if ($config['enableSearch'] ?? true): ?>
     <!-- Search Form -->
     <div class="<?= trim($config['containers']['search'] ?? '', '.') ?>">
-      <?= $snippets['search'] ?? snippet($config['snippets']['search'], compact('page', 'config'), true) ?>
+      <?= $snippets['search'] ?? '' ?>
     </div>
   <?php endif ?>
 
   <?php if ($config['enableFilters'] ?? true): ?>
     <!-- Taxonomy Filters -->
     <div class="<?= trim($config['containers']['filters'] ?? '', '.') ?>">
-      <?= $snippets['filters'] ?? snippet($config['snippets']['filters'], compact('collection', 'page', 'config'), true) ?>
+      <?= $snippets['filters'] ?? '' ?>
     </div>
   <?php endif ?>
 
   <!-- Collection Items -->
   <div class="<?= trim($config['containers']['items'] ?? '', '.') ?>" data-replacementtop="true" data-offset="100">
-    <?php if (isset($snippets['items'])): ?>
-      <?= $snippets['items'] ?>
-    <?php else: ?>
-      <?php
-      // Generate articles with order indices if not provided
-      if (!isset($articles)) {
-        $articles = [];
-        $index = 0;
-        foreach ($collection as $item) {
-          $articles[] = (object) [
-            'page' => $item,
-            'orderIndex' => $index++
-          ];
-        }
-      }
-      ?>
-      <?= snippet($config['snippets']['items'], compact('articles', 'collection', 'page', 'config'), true) ?>
-    <?php endif ?>
+    <?= $snippets['items'] ?? '' ?>
   </div>
 
   <!-- Pagination and Indicator -->
   <div class="collection-pagination-wrapper">
-    <?= $snippets['pagination'] ?? snippet($config['snippets']['pagination'], compact('collection', 'page', 'config'), true) ?>
+    <?= $snippets['pagination'] ?? '' ?>
 
-    <?= $snippets['indicator'] ?? snippet($config['snippets']['indicator'], compact('collection', 'config'), true) ?>
+    <?= $snippets['indicator'] ?? '' ?>
   </div>
 
   <?php if ($config['enableJs'] ?? true): ?>

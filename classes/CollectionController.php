@@ -114,11 +114,14 @@ class CollectionController
         // Sort collection
         $collection = $this->sortCollection($collection);
 
+        // Store the total count before pagination for empty result handling
+        $totalCount = $collection->count();
+
         // Paginate the collection first
         $paginatedCollection = $this->paginateCollection($collection);
 
         // Generate HTML snippets
-        $snippets = $this->generateSnippets($paginatedCollection);
+        $snippets = $this->generateSnippets($paginatedCollection, $totalCount);
 
         // Handle AJAX requests
         if ($this->isAjaxRequest()) {
@@ -130,6 +133,7 @@ class CollectionController
             'collection' => $paginatedCollection,
             'config' => $this->config,
             'currentPage' => $paginatedCollection->pagination()->page(),
+            'snippets' => $snippets
         ]);
     }
 
@@ -200,40 +204,97 @@ class CollectionController
         ]);
     }
 
-    protected function generateSnippets($collection)
+    protected function generateSnippets($collection, $totalCount = null)
     {
         $snippets = [];
-        $snippetData = [
+
+        // Use totalCount if provided, otherwise fall back to collection count
+        $actualTotalCount = $totalCount ?? $collection->count();
+
+        // Prepare common data for all snippets
+        $baseData = [
             'collection' => $collection,
             'page' => $this->page,
             'config' => $this->config
         ];
 
+        // Prepare specific data for each snippet type
+        $snippetData = [
+            'search' => array_merge($baseData, [
+                'currentSearch' => get('q', ''),
+                'hasSearch' => !empty(get('q', '')),
+                'placeholder' => $this->config['search']['placeholder'] ?? 'Search...',
+                'clearUrl' => self::buildUrl($this->page, ['q' => null])
+            ]),
+            'filters' => array_merge($baseData, [
+                'taxonomies' => $this->config['taxonomies'] ?? [],
+                'activeFilters' => $this->getActiveFilters()
+            ]),
+            'items' => array_merge($baseData, [
+                'articles' => $this->prepareArticlesWithIndex($collection),
+                'isEmpty' => $actualTotalCount === 0,
+                'hasActiveFilters' => $this->hasActiveFilters()
+            ]),
+            'pagination' => array_merge($baseData, [
+                'range' => $this->config['pagination']['range'] ?? 5,
+                'pagination' => $collection->pagination(),
+                'showPagination' => $collection->pagination()->pages() > 1 && $actualTotalCount > 0
+            ]),
+            'indicator' => array_merge($baseData, [
+                'pagination' => $collection->pagination(),
+                'format' => $this->config['texts']['pageIndicatorShort'] ?? 'Page {current} of {total}',
+                'showIndicator' => $actualTotalCount > 0
+            ])
+        ];
+
         foreach ($this->config['snippets'] as $key => $snippetName) {
-            // Add specific data for each snippet type
-            $data = $snippetData;
-
-            if ($key === 'pagination' || $key === 'indicator') {
-                $data['range'] = $this->config['pagination']['range'] ?? 5;
-            }
-
-            if ($key === 'items') {
-                // Add order indices for the current page items
-                $indexed = [];
-                $index = 0;
-                foreach ($collection as $item) {
-                    $indexed[] = (object) [
-                        'page' => $item,
-                        'orderIndex' => $index++
-                    ];
-                }
-                $data['articles'] = $indexed;
-            }
-
+            $data = $snippetData[$key] ?? $baseData;
             $snippets[$key] = snippet($snippetName, $data, true);
         }
 
         return $snippets;
+    }
+
+    protected function prepareArticlesWithIndex($collection)
+    {
+        $indexed = [];
+        $index = 0;
+        foreach ($collection as $item) {
+            $indexed[] = (object) [
+                'page' => $item,
+                'orderIndex' => $index++
+            ];
+        }
+        return $indexed;
+    }
+
+    protected function getActiveFilters()
+    {
+        $filters = [];
+        foreach ($this->config['taxonomies'] as $taxonomy) {
+            $value = get($taxonomy['param']) ?? param($taxonomy['param']);
+            if ($value) {
+                $filters[$taxonomy['param']] = [
+                    'label' => $taxonomy['label'],
+                    'value' => $value,
+                    'clearUrl' => self::buildUrl($this->page, [$taxonomy['param'] => null])
+                ];
+            }
+        }
+        return $filters;
+    }
+
+    protected function hasActiveFilters()
+    {
+        $search = get('q');
+        if ($search) return true;
+
+        foreach ($this->config['taxonomies'] as $taxonomy) {
+            if (get($taxonomy['param']) ?? param($taxonomy['param'])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected function isAjaxRequest()

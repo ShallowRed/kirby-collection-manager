@@ -1,76 +1,49 @@
 <?php
-// Validate required collection parameter
-if (!isset($collection) || !$collection) {
-  if (kirby()->option('debug')) {
-    throw new Exception('Collection parameter is required for collection-pagination snippet');
-  } else {
-    // In production, fail gracefully but return empty nav
-    echo '<nav class="collection-pagination"><!-- Collection parameter missing --></nav>';
-    return;
-  }
-}
+/**
+ * Collection Manager - Pagination Snippet
+ * Simple presentation-focused snippet
+ *
+ * Available variables:
+ * - $pagination: Pagination object
+ * - $showPagination: Whether to show pagination
+ * - $range: Range for page numbers
+ * - $page: Current page object
+ */
 
-// Validate that collection has pagination method
-if (!method_exists($collection, 'pagination')) {
-  if (kirby()->option('debug')) {
-    throw new Exception('Collection must be a paginated collection (use ->paginate() method)');
-  } else {
-    // In production, fail gracefully but return empty nav
-    echo '<nav class="collection-pagination"><!-- Collection not paginated --></nav>';
-    return;
-  }
-}
-
-// Get plugin configuration with proper fallbacks
-$config = kirby()->option('shallowred.collection-manager', []);
-$paginationConfig = is_array($config['pagination'] ?? null) ? $config['pagination'] : [];
-$texts = is_array($config['texts'] ?? null) ? $config['texts'] : [];
-
-// Set default values with validation
-$range = isset($range) ? (int) $range : (int) ($paginationConfig['range'] ?? 10);
-$range = max(1, min($range, 50)); // Clamp between 1 and 50
-
-$cssClasses = array_merge([
-  'nav' => 'collection-pagination',
-  'item' => 'collection-pagination__item',
-  'icon' => 'collection-pagination__icon',
-], is_array($paginationConfig['cssClasses'] ?? null) ? $paginationConfig['cssClasses'] : []);
-
-// Text configuration with fallbacks and HTML escaping
-$firstPageText = esc($texts['firstPage'] ?? 'Go to first page');
-$prevPageText = esc($texts['prevPage'] ?? 'Go to previous page');
-$nextPageText = esc($texts['nextPage'] ?? 'Go to next page');
-$lastPageText = esc($texts['lastPage'] ?? 'Go to last page');
-
-// Validate CSS classes
-foreach ($cssClasses as $key => $class) {
-  if (!is_string($class) || empty(trim($class))) {
-    $cssClasses[$key] = 'collection-pagination__' . $key;
-  }
-}
-
-// Use the CollectionController's URL building method
 use KirbyCollectionManager\CollectionController;
+
+// Debug output - remove this after debugging
+if (kirby()->option('debug')) {
+    echo "<!-- DEBUG: showPagination=" . var_export($showPagination, true) .
+         ", pagination->total()=" . ($pagination ? $pagination->total() : 'null') .
+         ", pagination->pages()=" . ($pagination ? $pagination->pages() : 'null') .
+         ", debug_totalCount=" . ($debug_totalCount ?? 'null') .
+         ", debug_paginationPages=" . ($debug_paginationPages ?? 'null') .
+         ", debug_paginationTotal=" . ($debug_paginationTotal ?? 'null') . " -->";
+}
+
+if (!$showPagination || ($pagination && $pagination->limit() > 0 && $pagination->total() === 0)) {
+    echo '<nav class="collection-pagination collection-pagination--empty"></nav>';
+    return;
+}
+
+$cssClasses = [
+    'nav' => 'collection-pagination',
+    'item' => 'collection-pagination__item',
+    'icon' => 'collection-pagination__icon'
+];
 ?>
 
-<?php if ($collection->count() > 0) : ?>
-<?php $pagination = $collection->pagination() ?>
-<?php
-// Only show pagination controls if there are actually multiple pages
-$showPagination = $pagination->pages() > 1;
-?>
-
-<?php if ($showPagination) : ?>
 <nav class="<?= $cssClasses['nav'] ?>" role="navigation" aria-label="Collection pagination">
   <ul>
     <!-- First Page Button -->
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
       <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => null]) ?>"
          data-page="1"
-         aria-label="<?= esc($firstPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
+         aria-label="Go to first page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--first" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($firstPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
+        <span class="sr-only">Go to first page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
 
@@ -78,25 +51,20 @@ $showPagination = $pagination->pages() > 1;
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
       <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->prevPage() > 1 ? $pagination->prevPage() : null]) ?>"
          data-page="<?= $pagination->prevPage() ?>"
-         aria-label="<?= esc($prevPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
+         aria-label="Go to previous page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--prev" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($prevPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
+        <span class="sr-only">Go to previous page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
 
     <!-- Page Numbers -->
     <?php foreach ($pagination->range($range) as $r) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-number">
-      <a <?php
-      echo attr([
-        'href' => CollectionController::buildUrl($page, ['p' => $r > 1 ? $r : null]),
-        'data-page' => $r,
-        'aria-current' => $pagination->page() === $r ? 'page' : null,
-        'aria-label' => $pagination->page() === $r ? 'Current page, page ' . $r : 'Go to page ' . $r,
-        'tabindex' => $pagination->page() === $r ? '-1' : null
-      ])
-      ?>>
+      <a href="<?= CollectionController::buildUrl($page, ['p' => $r > 1 ? $r : null]) ?>"
+         data-page="<?= $r ?>"
+         <?= $pagination->page() === $r ? 'aria-current="page" tabindex="-1"' : '' ?>
+         aria-label="<?= $pagination->page() === $r ? 'Current page, page ' . $r : 'Go to page ' . $r ?>">
         <?= $r ?>
       </a>
     </li>
@@ -106,10 +74,10 @@ $showPagination = $pagination->pages() > 1;
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
       <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->nextPage()]) ?>"
          data-page="<?= $pagination->nextPage() ?>"
-         aria-label="<?= esc($nextPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
+         aria-label="Go to next page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--next" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($nextPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
+        <span class="sr-only">Go to next page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
 
@@ -117,21 +85,11 @@ $showPagination = $pagination->pages() > 1;
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-last<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
       <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->lastPage()]) ?>"
          data-page="<?= $pagination->lastPage() ?>"
-         aria-label="<?= esc($lastPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
+         aria-label="Go to last page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--last" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($lastPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
+        <span class="sr-only">Go to last page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
   </ul>
 </nav>
-<?php else : ?>
-<nav class="<?= $cssClasses['nav'] ?> <?= $cssClasses['nav'] ?>--empty" role="navigation" aria-label="Collection pagination">
-  <!-- No pagination needed for single page -->
-</nav>
-<?php endif ?>
-<?php else: ?>
-<nav class="<?= $cssClasses['nav'] ?> <?= $cssClasses['nav'] ?>--empty" role="navigation" aria-label="Collection pagination">
-  <!-- No items to paginate -->
-</nav>
-<?php endif ?>
