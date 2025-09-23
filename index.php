@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/classes/CollectionController.php';
+
 Kirby::plugin('shallowred/collection-manager', [
 
   'options' => [
@@ -24,6 +26,25 @@ Kirby::plugin('shallowred/collection-manager', [
   'snippets' => [
     'collection-pagination' => __DIR__ . '/snippets/collection-pagination.php',
     'current-page-indicator' => __DIR__ . '/snippets/current-page-indicator.php',
+    'collection-items' => __DIR__ . '/snippets/collection-items.php',
+    'collection-item' => __DIR__ . '/snippets/collection-item.php',
+    'collection-filters' => __DIR__ . '/snippets/collection-filters.php',
+    'collection-search' => __DIR__ . '/snippets/collection-search.php',
+    'collection-manager' => __DIR__ . '/snippets/collection-manager.php',
+  ],
+
+  'pageMethods' => [
+    'collectionManager' => function ($config = []) {
+      $controller = new \KirbyCollectionManager\CollectionController($this, kirby(), $config);
+      return $controller->handle();
+    }
+  ],
+
+  'siteMethods' => [
+    'collectionManager' => function ($page, $config = []) {
+      $controller = new \KirbyCollectionManager\CollectionController($page, $this, $config);
+      return $controller->handle();
+    }
   ]
 
 ]);

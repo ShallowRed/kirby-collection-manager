@@ -1,6 +1,6 @@
 /**
  * Kirby Collection Manager - Default Styles
- * These are basic styles to get you started. Customize as needed.
+ * Minimal styling that can be overridden by users
  */
 
 /* Screen reader only text */
@@ -16,9 +16,211 @@
   border: 0;
 }
 
+/* Container */
+.collection-manager {
+  margin: 2rem 0;
+}
+
+/* Search */
+.collection-search {
+  margin-bottom: 1.5rem;
+}
+
+.collection-search__field {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.collection-search__input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.collection-search__submit,
+.collection-search__clear {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font-size: 1rem;
+}
+
+.collection-search__submit:hover,
+.collection-search__clear:hover {
+  background: #e9ecef;
+}
+
+.collection-search__indicator {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #e3f2fd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Filters */
+.collection-filters {
+  margin-bottom: 1.5rem;
+}
+
+.collection-filters__group {
+  margin-bottom: 1rem;
+}
+
+.collection-filters__label {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.collection-filters__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.collection-filter {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.collection-filter:hover {
+  background: #e9ecef;
+  text-decoration: none;
+}
+
+.collection-filter--active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.collection-filters__actions {
+  margin-top: 1rem;
+}
+
+.collection-filters__clear {
+  color: #dc3545;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.collection-filters__clear:hover {
+  text-decoration: underline;
+}
+
+/* Items */
+.collection-items {
+  margin-bottom: 2rem;
+}
+
+.collection-items__list {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.collection-items__empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.collection-items__empty-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.collection-items__empty-message {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Individual Item */
+.collection-item {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.collection-item:hover {
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.collection-item__image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.collection-item__content {
+  padding: 1rem;
+}
+
+.collection-item__title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.collection-item__text {
+  margin: 0 0 1rem 0;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.collection-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.collection-item__meta-item {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.collection-item__meta-label {
+  font-weight: 600;
+}
+
 /* Pagination Styles */
 .collection-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
   margin: 2rem 0;
+}
+
+.collection-pagination--empty {
+  display: none;
 }
 
 .collection-pagination ul {
@@ -36,6 +238,7 @@
   display: inline-block;
 }
 
+.collection-pagination__link,
 .collection-pagination__item a {
   display: inline-flex;
   align-items: center;
@@ -52,14 +255,16 @@
   position: relative;
 }
 
+.collection-pagination__link:hover,
+.collection-pagination__link:focus,
 .collection-pagination__item a:hover,
 .collection-pagination__item a:focus {
   background: #f5f5f5;
   border-color: #999;
-  outline: 2px solid #007acc;
-  outline-offset: 2px;
+  text-decoration: none;
 }
 
+.collection-pagination__link--current,
 .collection-pagination__item a[aria-current="page"] {
   background: #007acc;
   color: white;
@@ -67,8 +272,18 @@
   font-weight: bold;
 }
 
-.collection-pagination__item a[aria-current="page"]:focus {
-  outline-color: #005999;
+.collection-pagination__link--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.collection-pagination__item--disabled {
+  opacity: 0.5;
+}
+
+.collection-pagination__item--disabled a {
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 /* Icon styles for navigation buttons */
@@ -157,6 +372,25 @@
 }
 
 /* Loading states */
+.collection-manager--loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.collection-manager--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #ddd;
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 .collection-pagination--loading {
   opacity: 0.6;
   pointer-events: none;
@@ -182,52 +416,51 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* Responsive Design */
+@media (max-width: 768px) {
+  .collection-search__field {
+    max-width: none;
+  }
+
+  .collection-filters__options {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .collection-items__list {
+    grid-template-columns: 1fr;
+  }
+
+  .collection-pagination {
+    flex-wrap: wrap;
+  }
+
+  .collection-pagination ul {
+    gap: 0.25rem;
+  }
+
+  .collection-pagination__link,
   .collection-pagination__item a {
-    color: #e0e0e0;
-    background: #333;
-    border-color: #555;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0.25rem;
+    font-size: 0.9rem;
   }
 
-  .collection-pagination__item a:hover,
-  .collection-pagination__item a:focus {
-    background: #444;
-    border-color: #777;
-  }
-
-  .collection-pagination__item a[aria-current="page"] {
-    background: #0066cc;
-    border-color: #0066cc;
-  }
-
-  .current-page-indicator {
-    color: #ccc;
-  }
-
-  .collection-pagination__item--empty {
-    color: #999;
+  /* Hide first/last buttons on mobile */
+  .collection-pagination__item--to-first,
+  .collection-pagination__item--to-last {
+    display: none;
   }
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .collection-pagination__item a {
-    border-width: 2px;
+@media (max-width: 480px) {
+  .collection-pagination ul {
+    justify-content: space-between;
   }
 
-  .collection-pagination__item a:focus {
-    outline-width: 3px;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .collection-pagination__item a {
-    transition: none;
-  }
-
-  .collection-pagination--loading::after {
-    animation: none;
+  /* Show only prev/next and current page on very small screens */
+  .collection-pagination__item--to-number:not(:has([aria-current="page"])) {
+    display: none;
   }
 }

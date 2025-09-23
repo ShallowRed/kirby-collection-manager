@@ -49,33 +49,8 @@ foreach ($cssClasses as $key => $class) {
   }
 }
 
-// Helper function to build pagination URLs that preserve current GET parameters
-function buildPaginationURL($page, $pageNumber) {
-  $params = [];
-
-  // Preserve search query
-  if ($search = get('q')) {
-    $params['q'] = $search;
-  }
-
-  // Preserve category filter
-  if ($category = get('category')) {
-    $params['category'] = $category;
-  }
-
-  // Add page parameter (only if not page 1)
-  if ($pageNumber > 1) {
-    $params['p'] = $pageNumber;
-  }
-
-  // Build URL with parameters
-  $url = $page->url();
-  if (!empty($params)) {
-    $url .= '?' . http_build_query($params);
-  }
-
-  return $url;
-}
+// Use the CollectionController's URL building method
+use KirbyCollectionManager\CollectionController;
 ?>
 
 <?php if ($collection->count() > 0) : ?>
@@ -88,26 +63,34 @@ $showPagination = $pagination->pages() > 1;
 <?php if ($showPagination) : ?>
 <nav class="<?= $cssClasses['nav'] ?>" role="navigation" aria-label="Collection pagination">
   <ul>
-    <?php if ($pagination->hasPrevPage()) : ?>
-    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first">
-      <a href="<?= buildPaginationURL($page, 1) ?>" data-page="1" aria-label="<?= esc($firstPageText) ?>">
+    <!-- First Page Button -->
+    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
+      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => null]) ?>"
+         data-page="1"
+         aria-label="<?= esc($firstPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
+         <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--first" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($firstPageText) ?></span>
+        <span class="sr-only"><?= esc($firstPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
-    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling">
-      <a href="<?= buildPaginationURL($page, $pagination->prevPage()) ?>" data-page="<?= $pagination->prevPage() ?>" aria-label="<?= esc($prevPageText) ?>">
-        <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--prev" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($prevPageText) ?></span>
-      </a>
-    </li>
-    <?php endif ?>
 
+    <!-- Previous Page Button -->
+    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
+      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->prevPage() > 1 ? $pagination->prevPage() : null]) ?>"
+         data-page="<?= $pagination->prevPage() ?>"
+         aria-label="<?= esc($prevPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
+         <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
+        <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--prev" aria-hidden="true"></span>
+        <span class="sr-only"><?= esc($prevPageText) ?><?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?></span>
+      </a>
+    </li>
+
+    <!-- Page Numbers -->
     <?php foreach ($pagination->range($range) as $r) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-number">
       <a <?php
       echo attr([
-        'href' => buildPaginationURL($page, $r),
+        'href' => CollectionController::buildUrl($page, ['p' => $r > 1 ? $r : null]),
         'data-page' => $r,
         'aria-current' => $pagination->page() === $r ? 'page' : null,
         'aria-label' => $pagination->page() === $r ? 'Current page, page ' . $r : 'Go to page ' . $r,
@@ -119,20 +102,27 @@ $showPagination = $pagination->pages() > 1;
     </li>
     <?php endforeach ?>
 
-    <?php if ($pagination->hasNextPage()) : ?>
-    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling">
-      <a href="<?= buildPaginationURL($page, $pagination->nextPage()) ?>" data-page="<?= $pagination->nextPage() ?>" aria-label="<?= esc($nextPageText) ?>">
+    <!-- Next Page Button -->
+    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
+      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->nextPage()]) ?>"
+         data-page="<?= $pagination->nextPage() ?>"
+         aria-label="<?= esc($nextPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
+         <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--next" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($nextPageText) ?></span>
+        <span class="sr-only"><?= esc($nextPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
-    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-last">
-      <a href="<?= buildPaginationURL($page, $pagination->lastPage()) ?>" data-page="<?= $pagination->lastPage() ?>" aria-label="<?= esc($lastPageText) ?>">
+
+    <!-- Last Page Button -->
+    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-last<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
+      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->lastPage()]) ?>"
+         data-page="<?= $pagination->lastPage() ?>"
+         aria-label="<?= esc($lastPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
+         <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--last" aria-hidden="true"></span>
-        <span class="sr-only"><?= esc($lastPageText) ?></span>
+        <span class="sr-only"><?= esc($lastPageText) ?><?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?></span>
       </a>
     </li>
-    <?php endif ?>
   </ul>
 </nav>
 <?php else : ?>
