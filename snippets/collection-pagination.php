@@ -4,7 +4,8 @@ if (!isset($collection) || !$collection) {
   if (kirby()->option('debug')) {
     throw new Exception('Collection parameter is required for collection-pagination snippet');
   } else {
-    // In production, fail gracefully
+    // In production, fail gracefully but return empty nav
+    echo '<nav class="collection-pagination"><!-- Collection parameter missing --></nav>';
     return;
   }
 }
@@ -14,6 +15,8 @@ if (!method_exists($collection, 'pagination')) {
   if (kirby()->option('debug')) {
     throw new Exception('Collection must be a paginated collection (use ->paginate() method)');
   } else {
+    // In production, fail gracefully but return empty nav
+    echo '<nav class="collection-pagination"><!-- Collection not paginated --></nav>';
     return;
   }
 }
@@ -45,37 +48,66 @@ foreach ($cssClasses as $key => $class) {
     $cssClasses[$key] = 'collection-pagination__' . $key;
   }
 }
+
+// Helper function to build pagination URLs that preserve current GET parameters
+function buildPaginationURL($page, $pageNumber) {
+  $params = [];
+
+  // Preserve search query
+  if ($search = get('q')) {
+    $params['q'] = $search;
+  }
+
+  // Preserve category filter
+  if ($category = get('category')) {
+    $params['category'] = $category;
+  }
+
+  // Add page parameter (only if not page 1)
+  if ($pageNumber > 1) {
+    $params['p'] = $pageNumber;
+  }
+
+  // Build URL with parameters
+  $url = $page->url();
+  if (!empty($params)) {
+    $url .= '?' . http_build_query($params);
+  }
+
+  return $url;
+}
 ?>
 
+<?php if ($collection->count() > 0) : ?>
+<?php $pagination = $collection->pagination() ?>
+<?php
+// Only show pagination controls if there are actually multiple pages
+$showPagination = $pagination->pages() > 1;
+?>
+
+<?php if ($showPagination) : ?>
 <nav class="<?= $cssClasses['nav'] ?>" role="navigation" aria-label="Collection pagination">
   <ul>
-  <?php if ($collection->count() > 0) : ?>
-  <?php $pagination = $collection->pagination() ?>
-    <?php
-    // Only show pagination controls if there are actually multiple pages
-    $showPagination = $pagination->pages() > 1;
-    ?>
-    <?php if ($showPagination && $pagination->hasPrevPage()) : ?>
+    <?php if ($pagination->hasPrevPage()) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first">
-      <a href="<?= $pagination->firstPageURL() ?>" data-page="1" aria-label="<?= esc($firstPageText) ?>">
+      <a href="<?= buildPaginationURL($page, 1) ?>" data-page="1" aria-label="<?= esc($firstPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--first" aria-hidden="true"></span>
         <span class="sr-only"><?= esc($firstPageText) ?></span>
       </a>
     </li>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling">
-      <a href="<?= $pagination->prevPageURL() ?>" data-page="<?= $pagination->prevPage() ?>" aria-label="<?= esc($prevPageText) ?>">
+      <a href="<?= buildPaginationURL($page, $pagination->prevPage()) ?>" data-page="<?= $pagination->prevPage() ?>" aria-label="<?= esc($prevPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--prev" aria-hidden="true"></span>
         <span class="sr-only"><?= esc($prevPageText) ?></span>
       </a>
     </li>
     <?php endif ?>
 
-    <?php if ($showPagination) : ?>
     <?php foreach ($pagination->range($range) as $r) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-number">
       <a <?php
       echo attr([
-        'href' => $pagination->pageURL($r),
+        'href' => buildPaginationURL($page, $r),
         'data-page' => $r,
         'aria-current' => $pagination->page() === $r ? 'page' : null,
         'aria-label' => $pagination->page() === $r ? 'Current page, page ' . $r : 'Go to page ' . $r,
@@ -86,26 +118,30 @@ foreach ($cssClasses as $key => $class) {
       </a>
     </li>
     <?php endforeach ?>
-    <?php endif ?>
 
-    <?php if ($showPagination && $pagination->hasNextPage()) : ?>
+    <?php if ($pagination->hasNextPage()) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling">
-      <a href="<?= $pagination->nextPageURL() ?>" data-page="<?= $pagination->nextPage() ?>" aria-label="<?= esc($nextPageText) ?>">
+      <a href="<?= buildPaginationURL($page, $pagination->nextPage()) ?>" data-page="<?= $pagination->nextPage() ?>" aria-label="<?= esc($nextPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--next" aria-hidden="true"></span>
         <span class="sr-only"><?= esc($nextPageText) ?></span>
       </a>
     </li>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-last">
-      <a href="<?= $pagination->lastPageURL() ?>" data-page="<?= $pagination->lastPage() ?>" aria-label="<?= esc($lastPageText) ?>">
+      <a href="<?= buildPaginationURL($page, $pagination->lastPage()) ?>" data-page="<?= $pagination->lastPage() ?>" aria-label="<?= esc($lastPageText) ?>">
         <span class="<?= $cssClasses['icon'] ?> <?= $cssClasses['icon'] ?>--last" aria-hidden="true"></span>
         <span class="sr-only"><?= esc($lastPageText) ?></span>
       </a>
     </li>
     <?php endif ?>
-  <?php else: ?>
-    <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--empty">
-      <span>No items to paginate</span>
-    </li>
-  <?php endif ?>
   </ul>
 </nav>
+<?php else : ?>
+<nav class="<?= $cssClasses['nav'] ?> <?= $cssClasses['nav'] ?>--empty" role="navigation" aria-label="Collection pagination">
+  <!-- No pagination needed for single page -->
+</nav>
+<?php endif ?>
+<?php else: ?>
+<nav class="<?= $cssClasses['nav'] ?> <?= $cssClasses['nav'] ?>--empty" role="navigation" aria-label="Collection pagination">
+  <!-- No items to paginate -->
+</nav>
+<?php endif ?>
