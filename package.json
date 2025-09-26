@@ -1,0 +1,15 @@
+{
+  "name": "kirby-collection-manager-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for Kirby Collection Manager plugin",
+  "scripts": {
+    "test": "playwright test",
+    "test:quiet": "playwright test --reporter=dot",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "postinstall": "playwright install"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

@@ -1,0 +1,250 @@
+# Kirby Collection Manager Plugin - LLM Understanding Guide
+
+## Overview
+This is a Kirby CMS plugin that provides advanced collection management with AJAX-powered search, filtering, pagination, and sorting. It follows a controller factory pattern with smart controller/dumb views architecture.
+
+## Core Architecture
+
+### Controller Factory Pattern
+- **Primary Class**: `KirbyCollectionManager\CollectionController`
+- **Location**: `/classes/CollectionController.php`
+- **Purpose**: Centralized logic handling for all collection operations
+- **Usage**: Called via `CollectionController::handle($page, $config)` in page controllers
+
+### Smart Controller, Dumb Views
+- **Controller**: Processes all data, handles queries, manages state
+- **Snippets**: Receive pre-processed data, minimal logic, focus on presentation
+- **Key Feature**: Controller's `generateSnippets()` method pre-renders all snippet content
+
+## File Structure & Responsibilities
+
+### Core Files
+```
+index.php                           # Plugin registration, options, snippets registration
+classes/CollectionController.php    # Main controller logic
+snippets/collection-manager.php     # Master template wrapper
+snippets/collection-*.php          # Individual component snippets
+lib/index.js                       # Frontend AJAX functionality
+```
+
+### Key Classes & Methods
+```php
+// Main controller factory method
+CollectionController::handle($page, $config)
+
+// Instance methods
+->getCollection()           // Retrieves filtered/sorted collection
+->getCurrentPage()          // Gets current pagination state
+->getSearchQuery()          // Gets active search term
+->getActiveFilters()        # Gets applied taxonomy filters
+->generateSnippets()        // Pre-renders all snippet content
+```
+
+## Usage Patterns
+
+### 1. Simple Snippet Usage (Recommended for basic needs)
+```php
+<?php snippet('collection-manager', [
+  'collection' => $page->children()->listed(),
+  'config' => [/* optional config */]
+]) ?>
+```
+
+### 2. Controller Factory Usage (Recommended for complex sites)
+```php
+// In site/controllers/blog.php
+return CollectionController::handle($page, [
+    'collection' => $page->children()->listed(),
+    'config' => [
+        'search' => ['fields' => ['title', 'text']],
+        'taxonomies' => [
+            ['param' => 'category', 'field' => 'category', 'label' => 'Category']
+        ],
+        'pagination' => ['limit' => 12]
+    ]
+]);
+
+// In templates/blog.php
+<?= $snippets['manager'] ?? snippet('collection-manager', compact('collection', 'config', 'snippets')) ?>
+```
+
+## Configuration Schema
+
+### Complete Config Structure
+```php
+[
+    'collection' => 'children',        // Collection source
+    'collectionMethod' => 'listed',    // Method to call on collection
+    'search' => [
+        'fields' => ['title', 'text'], // Fields to search in
+        'placeholder' => 'Search...'    // Search input placeholder
+    ],
+    'pagination' => [
+        'limit' => 10,                 // Items per page
+        'param' => 'p',                // URL parameter name
+        'range' => 5                   // Pagination range
+    ],
+    'sorting' => [
+        'default' => 'date',           // Default sort field
+        'direction' => 'desc'          // Default sort direction
+    ],
+    'taxonomies' => [                  // Filter definitions
+        [
+            'param' => 'category',     // URL parameter
+            'field' => 'category',     // Field to filter on
+            'label' => 'Category'      // Display label
+        ]
+    ],
+    'enableSearch' => true,            // Toggle search functionality
+    'enableFilters' => true,           // Toggle filter functionality
+    'enableJs' => true,                // Toggle AJAX enhancement
+    'containers' => [                  // CSS selectors for AJAX targets
+        'wrapper' => '.collection-manager',
+        'items' => '.collection-items',
+        'pagination' => '.collection-pagination'
+        // ... more containers
+    ]
+]
+```
+
+## AJAX Enhancement
+
+### Frontend Architecture
+- **File**: `/lib/index.js`
+- **Enhancement**: Progressive - works without JavaScript
+- **Targets**: Updates specific containers via CSS selectors
+- **URL Management**: Preserves state in URL parameters
+
+### AJAX Flow
+1. User interaction (search, filter, paginate)
+2. JavaScript prevents default form submission
+3. AJAX request to same URL with new parameters
+4. Server returns JSON with updated HTML fragments
+5. Frontend replaces specific containers with new content
+
+## Common Implementation Scenarios
+
+### Blog with Search & Categories
+```php
+// Controller
+return CollectionController::handle($page, [
+    'collection' => $page->children()->listed(),
+    'config' => [
+        'search' => ['fields' => ['title', 'text', 'intro']],
+        'taxonomies' => [
+            ['param' => 'category', 'field' => 'category', 'label' => 'Category']
+        ],
+        'pagination' => ['limit' => 6],
+        'sorting' => ['default' => 'date', 'direction' => 'desc']
+    ]
+]);
+```
+
+### Product Catalog with Multiple Filters
+```php
+'taxonomies' => [
+    ['param' => 'category', 'field' => 'category', 'label' => 'Category'],
+    ['param' => 'brand', 'field' => 'brand', 'label' => 'Brand'],
+    ['param' => 'price', 'field' => 'priceRange', 'label' => 'Price Range']
+]
+```
+
+### Portfolio with Custom Sorting
+```php
+'sorting' => [
+    'options' => [
+        'date' => 'Newest First',
+        'title' => 'Alphabetical',
+        'featured' => 'Featured First'
+    ],
+    'default' => 'featured'
+]
+```
+
+## Template Integration Points
+
+### Variables Available in Templates
+```php
+// From controller
+$collection      // Paginated, filtered collection
+$pagination     // Kirby pagination object
+$config         // Merged configuration
+$snippets       // Pre-rendered snippet content array
+
+// Snippet array structure
+$snippets = [
+    'manager' => '',    // Complete collection manager HTML
+    'search' => '',     // Search form HTML
+    'filters' => '',    // Filter forms HTML
+    'items' => '',      // Collection items HTML
+    'pagination' => '', // Pagination HTML
+    'indicator' => ''   // Current page indicator HTML
+]
+```
+
+### URL Parameter Handling
+- **Search**: `?q=search+term`
+- **Filters**: `?category=news&tag=important`
+- **Pagination**: `?p=2`
+- **Sorting**: `?sort=title&dir=asc`
+- **Combined**: `?q=search&category=news&p=2&sort=date&dir=desc`
+
+## Customization Points
+
+### Override Snippets
+Create files in your theme's `snippets/` folder:
+- `collection-manager.php` - Main wrapper
+- `collection-items.php` - Items container
+- `collection-item.php` - Individual item
+- `collection-search.php` - Search form
+- `collection-filters.php` - Filter forms
+- `collection-pagination.php` - Pagination controls
+
+### Custom CSS Classes
+```php
+'containers' => [
+    'wrapper' => '.my-custom-collection',
+    'items' => '.my-items-grid',
+    'pagination' => '.my-pagination'
+]
+```
+
+### Plugin Options (in config.php)
+```php
+'shallowred.collection-manager' => [
+    'pagination' => [
+        'range' => 10,
+        'cssClasses' => [
+            'nav' => 'pagination',
+            'item' => 'page-item'
+        ]
+    ],
+    'texts' => [
+        'pageIndicator' => 'Page {current} of {total}'
+    ]
+]
+```
+
+## Best Practices for LLMs
+
+### When suggesting implementations:
+1. **Always use CollectionController::handle()** for page controllers
+2. **Pass $snippets array** to templates when using controller factory
+3. **Configure taxonomies** based on the site's content structure
+4. **Set appropriate pagination limits** based on content type
+5. **Include search fields** that make sense for the content
+6. **Use semantic CSS class names** in container configuration
+
+### Common patterns to recommend:
+- Blog: search + category filters + date sorting
+- Portfolio: category filters + custom sorting options
+- Products: multiple taxonomy filters + search
+- News: search + category/tag filters + date pagination
+
+### Error prevention:
+- Always check if using controller factory pattern vs. simple snippet
+- Ensure $snippets array is available when referencing it
+- Configure AJAX containers to match actual HTML structure
+- Test that search fields exist on the content type being filtered
+
+This plugin excels at handling large collections efficiently while maintaining good UX with AJAX enhancement and proper URL state management.

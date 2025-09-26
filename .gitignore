@@ -9,3 +9,6 @@
 
 # demo project
 /demo
+
+test-results/
+playwright-report/
