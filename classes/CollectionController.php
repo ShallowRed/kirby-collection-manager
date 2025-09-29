@@ -12,7 +12,19 @@ class CollectionController
     {
         $this->page = $page;
         $this->site = $site;
-        $this->config = array_merge($this->getDefaultConfig(), $config);
+
+        // Get default configuration
+        $defaultConfig = $this->getDefaultConfig();
+
+        // Handle snippets merging specially
+        if (isset($config['snippets'])) {
+            $config['snippets'] = array_merge(
+                $defaultConfig['snippets'],
+                $config['snippets']
+            );
+        }
+
+        $this->config = array_merge($defaultConfig, $config);
     }
 
     protected function getDefaultConfig()
@@ -206,6 +218,7 @@ class CollectionController
 
     protected function generateSnippets($collection, $totalCount = null)
     {
+
         $snippets = [];
 
         // Use totalCount if provided, otherwise fall back to collection count
@@ -231,7 +244,7 @@ class CollectionController
                 'activeFilters' => $this->getActiveFilters()
             ]),
             'items' => array_merge($baseData, [
-                'articles' => $this->prepareArticlesWithIndex($collection),
+                'items' => $this->prepareItemsWithIndex($collection),
                 'isEmpty' => $actualTotalCount === 0,
                 'hasActiveFilters' => $this->hasActiveFilters()
             ]),
@@ -255,7 +268,7 @@ class CollectionController
         return $snippets;
     }
 
-    protected function prepareArticlesWithIndex($collection)
+    protected function prepareItemsWithIndex($collection)
     {
         $indexed = [];
         $index = 0;

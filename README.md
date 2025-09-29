@@ -46,7 +46,7 @@ The simplest way to add collection management to any page:
   'config' => [
     'search' => [
       'fields' => ['title', 'text', 'category'],
-      'placeholder' => 'Search articles...'
+      'placeholder' => 'Search items...'
     ],
     'taxonomies' => [
       ['param' => 'category', 'field' => 'category', 'label' => 'Category'],
@@ -205,9 +205,9 @@ site/snippets/
   <?php if ($pagination->hasPrevPage()): ?>
     <a href="<?= $pagination->prevPageURL() ?>">← Previous</a>
   <?php endif ?>
-  
+
   <span>Page <?= $pagination->page() ?> of <?= $pagination->pages() ?></span>
-  
+
   <?php if ($pagination->hasNextPage()): ?>
     <a href="<?= $pagination->nextPageURL() ?>">Next →</a>
   <?php endif ?>
@@ -299,7 +299,7 @@ return [
         'collection' => page('blog')->children()->listed()->limit(3),
         'config' => ['pagination' => ['limit' => 3]]
     ])['collection'],
-    
+
     'projects' => CollectionController::handle($page, [
         'collection' => page('work')->children()->listed(),
         'config' => [

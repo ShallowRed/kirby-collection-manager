@@ -247,4 +247,28 @@ Create files in your theme's `snippets/` folder:
 - Configure AJAX containers to match actual HTML structure
 - Test that search fields exist on the content type being filtered
 
+## Variable Names
+
+### Individual Item Access
+When creating custom item snippets (e.g., overriding `collection-item.php`), use these variables:
+
+```php
+<?php
+// site/snippets/your-custom-item.php
+
+// Available variables:
+$item        // The individual page/item object (generic name)
+$orderIndex  // Position in the sorted collection
+$config      // Plugin configuration array
+?>
+
+<article class="collection-item" data-id="<?= $item->id() ?>" data-order="<?= $orderIndex ?>">
+    <h3><?= $item->title() ?></h3>
+    <p><?= $item->text()->excerpt(150) ?></p>
+    <a href="<?= $item->url() ?>">Read more</a>
+</article>
+```
+
+**Note**: The plugin uses `$item` (generic) rather than `$article` (blog-specific) to support any content type: products, events, pages, etc.
+
 This plugin excels at handling large collections efficiently while maintaining good UX with AJAX enhancement and proper URL state management.

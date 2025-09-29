@@ -4,13 +4,13 @@
  * Renders a single collection item
  *
  * Available variables:
- * - $article: The page/item object
+ * - $item: The page/item object
  * - $orderIndex: The sort order index
  * - $config: Controller configuration
  */
 
 // Ensure we have required variables
-if (!isset($article)) {
+if (!isset($item)) {
   return;
 }
 
@@ -18,46 +18,46 @@ $orderIndex = $orderIndex ?? 0;
 $config = $config ?? [];
 ?>
 
-<article class="collection-item" data-id="<?= $article->id() ?>" data-order="<?= $orderIndex ?>">
+<article class="collection-item" data-id="<?= $item->id() ?>" data-order="<?= $orderIndex ?>">
 
-  <?php if ($article->hasImages()): ?>
+  <?php if ($item->hasImages()): ?>
     <div class="collection-item__image">
-      <?php $image = $article->images()->first() ?>
+      <?php $image = $item->images()->first() ?>
       <img src="<?= $image->crop(300, 200)->url() ?>"
-           alt="<?= esc($image->alt()->or($article->title())) ?>"
+           alt="<?= esc($image->alt()->or($item->title())) ?>"
            loading="lazy">
     </div>
   <?php endif ?>
 
   <div class="collection-item__content">
     <h2 class="collection-item__title">
-      <a href="<?= $article->url() ?>">
-        <?= $article->title() ?>
+      <a href="<?= $item->url() ?>">
+        <?= $item->title() ?>
       </a>
     </h2>
 
-    <?php if ($article->hasMethod('text') && $article->text()->isNotEmpty()): ?>
+    <?php if ($item->hasMethod('text') && $item->text()->isNotEmpty()): ?>
       <p class="collection-item__excerpt">
-        <?= $article->text()->excerpt(150) ?>
+        <?= $item->text()->excerpt(150) ?>
       </p>
     <?php endif ?>
 
     <div class="collection-item__meta">
-      <?php if ($article->hasMethod('date') && $article->date()->isNotEmpty()): ?>
-        <time class="collection-item__date" datetime="<?= $article->date('c') ?>">
-          <?= $article->date('M j, Y') ?>
+      <?php if ($item->hasMethod('date') && $item->date()->isNotEmpty()): ?>
+        <time class="collection-item__date" datetime="<?= $item->date('c') ?>">
+          <?= $item->date('M j, Y') ?>
         </time>
       <?php endif ?>
 
-      <?php if ($article->hasMethod('category') && $article->category()->isNotEmpty()): ?>
+      <?php if ($item->hasMethod('category') && $item->category()->isNotEmpty()): ?>
         <span class="collection-item__category">
-          <?= $article->category() ?>
+          <?= $item->category() ?>
         </span>
       <?php endif ?>
 
-      <?php if ($article->hasMethod('tags') && $article->tags()->isNotEmpty()): ?>
+      <?php if ($item->hasMethod('tags') && $item->tags()->isNotEmpty()): ?>
         <div class="collection-item__tags">
-          <?php foreach ($article->tags()->split(',') as $tag): ?>
+          <?php foreach ($item->tags()->split(',') as $tag): ?>
             <span class="collection-item__tag"><?= trim($tag) ?></span>
           <?php endforeach ?>
         </div>
@@ -65,7 +65,7 @@ $config = $config ?? [];
     </div>
 
     <div class="collection-item__actions">
-      <a href="<?= $article->url() ?>" class="collection-item__link">
+      <a href="<?= $item->url() ?>" class="collection-item__link">
         Read more
       </a>
     </div>

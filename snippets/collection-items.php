@@ -4,7 +4,7 @@
  * Simple presentation-focused snippet
  *
  * Available variables:
- * - $articles: Array of indexed articles
+ * - $items: Array of indexed items (legacy name, kept for compatibility)
  * - $isEmpty: Whether collection is empty
  * - $hasActiveFilters: Whether filters/search are active
  * - $config: Controller configuration
@@ -13,10 +13,10 @@
 
 <?php if (!$isEmpty): ?>
   <div class="collection-items__list">
-    <?php foreach ($articles as $item): ?>
+    <?php foreach ($items as $itemData): ?>
       <?= snippet($config['snippets']['item'] ?? 'collection-item', [
-        'article' => $item->page,
-        'orderIndex' => $item->orderIndex,
+        'item' => $itemData->page,
+        'orderIndex' => $itemData->orderIndex,
         'config' => $config
       ]) ?>
     <?php endforeach ?>
