@@ -46,7 +46,9 @@ CollectionController::handle($page, $config)
 ```php
 <?php snippet('collection-manager', [
   'collection' => $page->children()->listed(),
-  'config' => [/* optional config */]
+  // Optional configuration can be passed directly
+  'search' => ['fields' => ['title', 'text']],
+  'pagination' => ['limit' => 10]
 ]) ?>
 ```
 
@@ -55,13 +57,11 @@ CollectionController::handle($page, $config)
 // In site/controllers/blog.php
 return CollectionController::handle($page, [
     'collection' => $page->children()->listed(),
-    'config' => [
-        'search' => ['fields' => ['title', 'text']],
-        'taxonomies' => [
-            ['param' => 'category', 'field' => 'category', 'label' => 'Category']
-        ],
-        'pagination' => ['limit' => 12]
-    ]
+    'search' => ['fields' => ['title', 'text']],
+    'taxonomies' => [
+        ['param' => 'category', 'field' => 'category', 'label' => 'Category']
+    ],
+    'pagination' => ['limit' => 12]
 ]);
 
 // In templates/blog.php
@@ -71,8 +71,11 @@ return CollectionController::handle($page, [
 ## Configuration Schema
 
 ### Complete Config Structure
+**IMPORTANT**: All configuration options are passed at the root level to `CollectionController::handle()`, NOT nested under a 'config' key.
+
 ```php
-[
+// CORRECT - Configuration at root level
+CollectionController::handle($page, [
     'collection' => 'children',        // Collection source
     'collectionMethod' => 'listed',    // Method to call on collection
     'search' => [
@@ -104,7 +107,16 @@ return CollectionController::handle($page, [
         'pagination' => '.collection-pagination'
         // ... more containers
     ]
-]
+]);
+
+// INCORRECT - Don't nest under 'config' key
+CollectionController::handle($page, [
+    'collection' => $collection,
+    'config' => [                      // ❌ Wrong - creates double nesting
+        'search' => [...],             // ❌ Won't work properly
+        'enableSearch' => false        // ❌ Will be ignored
+    ]
+]);
 ```
 
 ## AJAX Enhancement
@@ -129,14 +141,12 @@ return CollectionController::handle($page, [
 // Controller
 return CollectionController::handle($page, [
     'collection' => $page->children()->listed(),
-    'config' => [
-        'search' => ['fields' => ['title', 'text', 'intro']],
-        'taxonomies' => [
-            ['param' => 'category', 'field' => 'category', 'label' => 'Category']
-        ],
-        'pagination' => ['limit' => 6],
-        'sorting' => ['default' => 'date', 'direction' => 'desc']
-    ]
+    'search' => ['fields' => ['title', 'text', 'intro']],
+    'taxonomies' => [
+        ['param' => 'category', 'field' => 'category', 'label' => 'Category']
+    ],
+    'pagination' => ['limit' => 6],
+    'sorting' => ['default' => 'date', 'direction' => 'desc']
 ]);
 ```
 
