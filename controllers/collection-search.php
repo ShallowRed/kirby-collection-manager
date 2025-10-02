@@ -1,5 +1,7 @@
 <?php
 
+use KirbyCollectionManager\CollectionController;
+
 /**
  * Collection Search - Snippet Controller
  * Prepares all data for the collection search snippet
@@ -16,7 +18,7 @@ return function ($page, $config) {
   $hasSearch = !empty($currentSearch);
 
   // Generate clear search URL
-  $clearUrl = \KirbyCollectionManager\CollectionController::buildUrl(
+  $clearUrl = CollectionController::buildUrl(
       $page,
       [$searchParam => ''],
       $paginationParam,

@@ -2,17 +2,6 @@
 
 /**
  * Collection Manager - Pagination Snippet
- * Pure presentation template - all logic handled in controller
- *
- * Available variables (from controller):
- * - $shouldShowPagination: Whether to show pagination
- * - $cssClasses: CSS class configuration
- * - $hasPrevPage, $hasNextPage: Navigation state
- * - $currentPage, $totalPages, $rangePages: Pagination data
- * - $firstPageUrl, $prevPageUrl, $nextPageUrl, $lastPageUrl: Navigation URLs
- * - $pageUrls: Array of page number URLs
- * - $firstPageLabel, $prevPageLabel, etc.: Accessibility labels
- * - $firstPageClasses, $prevPageClasses, etc.: CSS classes for buttons
  */
 
 ?>

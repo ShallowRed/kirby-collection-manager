@@ -1,5 +1,7 @@
 <?php
 
+use KirbyCollectionManager\CollectionController;
+
 /**
  * Collection Filters - Snippet Controller
  * Prepares all data for the collection filters snippet
@@ -53,7 +55,7 @@ return function ($collection, $page, $config) {
         'value' => $value,
         'label' => $value,
         'isActive' => $isActive,
-        'url' => \KirbyCollectionManager\CollectionController::buildUrl($page, [$param => $value], $paginationParam, $searchParam),
+        'url' => CollectionController::buildUrl($page, [$param => $value], $paginationParam, $searchParam),
         'param' => $param
       ];
     }
@@ -63,7 +65,7 @@ return function ($collection, $page, $config) {
       'field' => $field,
       'label' => $label,
       'currentValue' => $currentValue,
-      'allUrl' => \KirbyCollectionManager\CollectionController::buildUrl($page, [$param => null], $paginationParam, $searchParam),
+      'allUrl' => CollectionController::buildUrl($page, [$param => null], $paginationParam, $searchParam),
       'hasActiveFilter' => !empty($currentValue),
       'options' => $filterOptions
     ];

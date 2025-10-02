@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/classes/CollectionController.php';
+use KirbyCollectionManager\CollectionController;
 
 Kirby::plugin('shallowred/collection-manager', [
 
@@ -40,14 +40,14 @@ Kirby::plugin('shallowred/collection-manager', [
 
   'pageMethods' => [
     'collectionManager' => function ($config = []) {
-      $controller = new \KirbyCollectionManager\CollectionController($this, kirby(), $config);
+      $controller = new CollectionController($this, kirby(), $config);
       return $controller->handle();
     }
   ],
 
   'siteMethods' => [
     'collectionManager' => function ($page, $config = []) {
-      $controller = new \KirbyCollectionManager\CollectionController($page, $this, $config);
+      $controller = new CollectionController($page, $this, $config);
       return $controller->handle();
     }
   ]
