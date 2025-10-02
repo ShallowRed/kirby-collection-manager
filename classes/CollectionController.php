@@ -49,6 +49,8 @@ class CollectionController
       'taxonomies' => [],
       'enableSearch' => true,
       'enableFilters' => true,
+      'enableIndicator' => true,
+      'enablePagination' => true,
       'enableJs' => true,
       'containers' => [
         'wrapper' => '.collection-manager',
@@ -143,12 +145,18 @@ class CollectionController
     }
 
         // Return template data
-    return array_merge($snippets, [
+    $returnData = [
       'collection' => $paginatedCollection,
       'config' => $this->config,
-      'currentPage' => $paginatedCollection->pagination()->page(),
       'snippets' => $snippets
-    ]);
+    ];
+
+    // Add currentPage only if pagination is enabled
+    if ($this->config['enablePagination'] ?? true) {
+      $returnData['currentPage'] = $paginatedCollection->pagination()->page();
+    }
+
+    return array_merge($snippets, $returnData);
   }
 
   protected function getBaseCollection()
@@ -209,6 +217,11 @@ class CollectionController
 
   protected function paginateCollection($collection)
   {
+    // If pagination is disabled, return the collection as-is
+    if (!($this->config['enablePagination'] ?? true)) {
+      return $collection;
+    }
+
     $pagination = $this->config['pagination'] ?? [];
 
     return $collection->paginate([
@@ -232,7 +245,7 @@ class CollectionController
       'page' => $this->page,
       'config' => $this->config,
       'pagination' => $collection->pagination(),
-      'showPagination' => $collection->pagination()->total() > $collection->pagination()->limit(),
+      'showPagination' => $collection->pagination() ? $collection->pagination()->total() > $collection->pagination()->limit() : false,
       'showIndicator' => true
     ];
 
@@ -252,6 +265,14 @@ class CollectionController
         continue;
       }
       if ($key === 'filters' && !($this->config['enableFilters'] ?? true)) {
+        $snippets[$key] = '';
+        continue;
+      }
+      if ($key === 'indicator' && !($this->config['enableIndicator'] ?? true)) {
+        $snippets[$key] = '';
+        continue;
+      }
+      if ($key === 'pagination' && !($this->config['enablePagination'] ?? true)) {
         $snippets[$key] = '';
         continue;
       }

@@ -10,7 +10,7 @@ return function (...$data) {
   $paginationParam = $config['pagination']['param'] ?? 'p';
 
   // Check if pagination should be shown
-  $shouldShowPagination = $showPagination && !($pagination && $pagination->limit() > 0 && $pagination->total() === 0);
+  $shouldShowPagination = $showPagination && $pagination && !($pagination->limit() > 0 && $pagination->total() === 0);
 
   // CSS classes configuration
   $cssClasses = [
