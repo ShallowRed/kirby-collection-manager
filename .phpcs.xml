@@ -32,6 +32,7 @@
   <!-- Exclude patterns. -->
   <exclude-pattern>/vendor/*</exclude-pattern>
   <exclude-pattern>/node_modules/*</exclude-pattern>
+  <exclude-pattern>/demo/kirby/*</exclude-pattern>
 
   <rule ref="PSR12" />
 

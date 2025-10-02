@@ -3,6 +3,17 @@
 ## Overview
 This is a Kirby CMS plugin that provides advanced collection management with AJAX-powered search, filtering, pagination, and sorting. It follows a controller factory pattern with smart controller/dumb views architecture.
 
+## Philosophy
+
+- **Smart Controller, Dumb Views**: All logic in controllers, templates only for presentation
+- **Progressive Enhancement**: Works without JavaScript, enhanced with AJAX
+- **Separation of Concerns**: Logic separated using snippet controllers (lukaskleinschmidt/kirby-snippet-controller)
+- **Explicit Code**: Prefer explicit `<?php echo ?>` over short tags `<?= ?>`
+- **Security First**: All output properly escaped with `esc()` and `attr()` helpers
+- **Flexible Architecture**: Both simple snippet usage and advanced controller factory patterns
+- **Performance Focused**: Pre-rendered snippets and optimized AJAX updates
+- **Accessibility**: Proper ARIA attributes, semantic HTML, screen reader support
+
 ## Core Architecture
 
 ### Controller Factory Pattern
@@ -280,5 +291,129 @@ $config      // Plugin configuration array
 ```
 
 **Note**: The plugin uses `$item` (generic) rather than `$article` (blog-specific) to support any content type: products, events, pages, etc.
+
+## Development Workflow
+
+### Making Changes
+
+1. **Edit code**: Modify controllers, snippets, or JavaScript components
+2. **Lint code**: Run `composer lint` to check code style compliance
+3. **Auto-fix**: Run `composer lint:fix` to automatically fix style issues
+4. **Test functionality**: Verify search, pagination, filtering work correctly
+5. **Test AJAX**: Ensure progressive enhancement functions properly
+
+### Code Standards
+
+- **PSR-12 compliance**: Modern PHP standards with 2-space indentation
+- **Explicit echo**: Use `<?php echo ?>` instead of short tags `<?= ?>`
+- **Kirby helpers**: Leverage `attr()`, `esc()`, and other Kirby CMS helpers
+- **Security**: All output must be properly escaped for context (html, attr, etc.)
+- **Separation**: Logic in controllers/models, presentation in snippets only
+- **Accessibility**: Semantic HTML with proper ARIA attributes
+
+### Template Standards
+
+```php
+// ❌ WRONG - Short echo tags
+<?= $someVariable ?>
+<div class="<?= $cssClass ?>">
+
+// ✅ CORRECT - Explicit echo with proper escaping
+<?php echo esc($someVariable, 'html') ?>
+<div <?php echo attr(['class' => $cssClass]) ?>>
+
+// ✅ CORRECT - Using Kirby helpers for attributes
+<a <?php echo attr([
+  'href' => $url,
+  'class' => $linkClass,
+  'aria-label' => $label
+]) ?>>
+  <?php echo esc($linkText, 'html') ?>
+</a>
+```
+
+### Commands
+
+```bash
+# Code quality
+composer lint           # Check code style (PSR-12 + custom rules)
+composer lint:fix       # Auto-fix style issues
+composer test           # Run unit tests (when implemented)
+
+# Development tools
+composer install        # Install dependencies
+composer update         # Update dependencies
+```
+
+### Linting Configuration
+
+Uses `.phpcs.xml` with:
+- PSR-12 base standards
+- 2-space indentation (Kirby style)
+- Disallows short echo tags (`<?= ?>`)
+- Custom rules for arrays and scope indentation
+- Excludes vendor and node_modules directories
+- Parallel processing for faster checks
+
+## Architecture Details
+
+### File Structure
+```
+classes/CollectionController.php    # Main controller logic (namespaced)
+controllers/                       # Snippet controllers for logic separation
+snippets/                          # Pure presentation templates
+lib/index.js                       # Frontend AJAX enhancement
+tests/e2e/                         # End-to-end Playwright tests
+composer.json                      # Dependencies and scripts
+.phpcs.xml                         # Code style configuration
+```
+
+### Key Principles
+
+1. **Controllers handle logic**: All data processing in controller classes
+2. **Snippets are pure**: Only presentation, minimal PHP, use pre-processed data
+3. **Snippet controllers**: Use lukaskleinschmidt/kirby-snippet-controller for logic separation
+4. **Progressive enhancement**: Base functionality without JS, enhanced with AJAX
+5. **URL state preservation**: All filtering/search states preserved in URLs
+6. **Custom pagination params**: Respects custom pagination parameter names
+
+## Integration Patterns
+
+### For Simple Sites
+```php
+<?php snippet('collection-manager', [
+  'collection' => $page->children()->listed(),
+  'search' => ['fields' => ['title', 'text']],
+  'pagination' => ['limit' => 10]
+]) ?>
+```
+
+### For Complex Sites
+```php
+// In controllers/
+return CollectionController::handle($page, [
+  'collection' => collection('posts'),
+  'enableSearch' => false,
+  'enableFilters' => false,
+  'snippets' => ['item' => 'custom-item']
+]);
+
+// In templates/
+<?php echo $snippets['wrapper'] ?>
+```
+
+### For Blocks
+```php
+// In blocks/post-list.controller.php
+use KirbyCollectionManager\CollectionController;
+
+return function ($page) {
+  return CollectionController::handle($page, [
+    'collection' => collection('posts'),
+    'enableSearch' => false,
+    'pagination' => ['limit' => 8, 'param' => 'page']
+  ]);
+};
+```
 
 This plugin excels at handling large collections efficiently while maintaining good UX with AJAX enhancement and proper URL state management.

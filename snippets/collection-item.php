@@ -1,71 +1,74 @@
 <?php
+
 /**
  * Collection Manager - Individual Item Snippet
- * Renders a single collection item
- *
- * Available variables:
- * - $item: The page/item object
- * - $orderIndex: The sort order index
- * - $config: Controller configuration
+ * Simple presentation-focused snippet using snippet controller
  */
 
-// Ensure we have required variables
-if (!isset($item)) {
+if (!($shouldRender ?? true)) {
   return;
 }
-
-$orderIndex = $orderIndex ?? 0;
-$config = $config ?? [];
 ?>
 
-<article class="collection-item" data-id="<?= $item->id() ?>" data-order="<?= $orderIndex ?>">
+<article<?php echo attr([
+  'class' => 'collection-item',
+  'data-id' => $item->id(),
+  'data-order' => $orderIndex
+]) ?>>
 
-  <?php if ($item->hasImages()): ?>
+  <?php if ($hasImage) : ?>
     <div class="collection-item__image">
-      <?php $image = $item->images()->first() ?>
-      <img src="<?= $image->crop(300, 200)->url() ?>"
-           alt="<?= esc($image->alt()->or($item->title())) ?>"
-           loading="lazy">
+      <img<?php echo attr([
+        'src' => $firstImage->crop(300, 200)->url(),
+        'alt' => $firstImage->alt()->or($item->title())->value(),
+        'loading' => 'lazy'
+      ]) ?>>
     </div>
   <?php endif ?>
 
   <div class="collection-item__content">
     <h2 class="collection-item__title">
-      <a href="<?= $item->url() ?>">
-        <?= $item->title() ?>
+      <a <?php echo attr(['href' => $item->url()]) ?>>
+        <?php echo esc($item->title(), 'html') ?>
       </a>
     </h2>
 
-    <?php if ($item->hasMethod('text') && $item->text()->isNotEmpty()): ?>
+    <?php if ($hasText) : ?>
       <p class="collection-item__excerpt">
-        <?= $item->text()->excerpt(150) ?>
+        <?php echo esc($item->text()->excerpt(150), 'html') ?>
       </p>
     <?php endif ?>
 
     <div class="collection-item__meta">
-      <?php if ($item->hasMethod('date') && $item->date()->isNotEmpty()): ?>
-        <time class="collection-item__date" datetime="<?= $item->date('c') ?>">
-          <?= $item->date('M j, Y') ?>
+      <?php if ($hasDate) : ?>
+        <time<?php echo attr([
+          'class' => 'collection-item__date',
+          'datetime' => $item->date('c')
+        ]) ?>>
+          <?php echo esc($item->date('M j, Y'), 'html') ?>
         </time>
       <?php endif ?>
 
-      <?php if ($item->hasMethod('category') && $item->category()->isNotEmpty()): ?>
+      <?php if ($hasCategory) : ?>
         <span class="collection-item__category">
-          <?= $item->category() ?>
+          <?php echo esc($item->category(), 'html') ?>
         </span>
       <?php endif ?>
 
-      <?php if ($item->hasMethod('tags') && $item->tags()->isNotEmpty()): ?>
+      <?php if ($hasTags) : ?>
         <div class="collection-item__tags">
-          <?php foreach ($item->tags()->split(',') as $tag): ?>
-            <span class="collection-item__tag"><?= trim($tag) ?></span>
+          <?php foreach ($processedTags as $tag) : ?>
+            <span class="collection-item__tag"><?php echo esc($tag, 'html') ?></span>
           <?php endforeach ?>
         </div>
       <?php endif ?>
     </div>
 
     <div class="collection-item__actions">
-      <a href="<?= $item->url() ?>" class="collection-item__link">
+      <a <?php echo attr([
+        'href' => $item->url(),
+        'class' => 'collection-item__link'
+      ]) ?>>
         Read more
       </a>
     </div>
