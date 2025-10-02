@@ -12,20 +12,13 @@
 
 use KirbyCollectionManager\CollectionController;
 
-// Debug output - remove this after debugging
-if (kirby()->option('debug')) {
-    echo "<!-- DEBUG: showPagination=" . var_export($showPagination, true) .
-         ", pagination->total()=" . ($pagination ? $pagination->total() : 'null') .
-         ", pagination->pages()=" . ($pagination ? $pagination->pages() : 'null') .
-         ", debug_totalCount=" . ($debug_totalCount ?? 'null') .
-         ", debug_paginationPages=" . ($debug_paginationPages ?? 'null') .
-         ", debug_paginationTotal=" . ($debug_paginationTotal ?? 'null') . " -->";
-}
-
 if (!$showPagination || ($pagination && $pagination->limit() > 0 && $pagination->total() === 0)) {
     echo '<nav class="collection-pagination collection-pagination--empty"></nav>';
     return;
 }
+
+// Get the configured pagination parameter name
+$paginationParam = $config['pagination']['param'] ?? 'p';
 
 $cssClasses = [
     'nav' => 'collection-pagination',
@@ -38,7 +31,7 @@ $cssClasses = [
   <ul>
     <!-- First Page Button -->
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-first<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
-      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => null]) ?>"
+      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, [$paginationParam => null], $paginationParam) ?>"
          data-page="1"
          aria-label="Go to first page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
@@ -49,7 +42,7 @@ $cssClasses = [
 
     <!-- Previous Page Button -->
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasPrevPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
-      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->prevPage() > 1 ? $pagination->prevPage() : null]) ?>"
+      <a href="<?= !$pagination->hasPrevPage() ? '#' : CollectionController::buildUrl($page, [$paginationParam => $pagination->prevPage() > 1 ? $pagination->prevPage() : null], $paginationParam) ?>"
          data-page="<?= $pagination->prevPage() ?>"
          aria-label="Go to previous page<?= !$pagination->hasPrevPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasPrevPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
@@ -61,7 +54,7 @@ $cssClasses = [
     <!-- Page Numbers -->
     <?php foreach ($pagination->range($range) as $r) : ?>
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-number">
-      <a href="<?= CollectionController::buildUrl($page, ['p' => $r > 1 ? $r : null]) ?>"
+      <a href="<?= CollectionController::buildUrl($page, [$paginationParam => $r > 1 ? $r : null], $paginationParam) ?>"
          data-page="<?= $r ?>"
          <?= $pagination->page() === $r ? 'aria-current="page" tabindex="-1"' : '' ?>
          aria-label="<?= $pagination->page() === $r ? 'Current page, page ' . $r : 'Go to page ' . $r ?>">
@@ -72,7 +65,7 @@ $cssClasses = [
 
     <!-- Next Page Button -->
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-sibling<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
-      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->nextPage()]) ?>"
+      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, [$paginationParam => $pagination->nextPage()], $paginationParam) ?>"
          data-page="<?= $pagination->nextPage() ?>"
          aria-label="Go to next page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>
@@ -83,7 +76,7 @@ $cssClasses = [
 
     <!-- Last Page Button -->
     <li class="<?= $cssClasses['item'] ?> <?= $cssClasses['item'] ?>--to-last<?= !$pagination->hasNextPage() ? ' ' . $cssClasses['item'] . '--disabled' : '' ?>">
-      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, ['p' => $pagination->lastPage()]) ?>"
+      <a href="<?= !$pagination->hasNextPage() ? '#' : CollectionController::buildUrl($page, [$paginationParam => $pagination->lastPage()], $paginationParam) ?>"
          data-page="<?= $pagination->lastPage() ?>"
          aria-label="Go to last page<?= !$pagination->hasNextPage() ? ' (disabled)' : '' ?>"
          <?= !$pagination->hasNextPage() ? 'aria-disabled="true" tabindex="-1"' : '' ?>>

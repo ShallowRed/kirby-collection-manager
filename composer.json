@@ -1,15 +1,74 @@
 {
-	"name": "shallowred/kirby-collection-manager",
-	"description": "A Kirby CMS plugin for advanced collection management with AJAX pagination, filtering, and search functionality",
-	"license": "MIT",
-	"type": "kirby-plugin",
-	"authors": [
-		{
-			"name": "Lucas Poulain",
-			"email": "lucas@shallowred.com"
-		}
-	],
-	"require": {
-		"getkirby/composer-installer": "^1.1"
-	}
+    "name": "shallowred/kirby-collection-manager",
+    "description": "A powerful Kirby CMS plugin for managing collections with AJAX pagination, search, filtering, and sorting. Provides both complete out-of-the-box solution and flexible components for custom implementations.",
+    "version": "1.0.0",
+    "license": "MIT",
+    "type": "kirby-plugin",
+    "keywords": [
+        "kirby",
+        "plugin",
+        "collection",
+        "pagination",
+        "search",
+        "filtering",
+        "ajax",
+        "cms"
+    ],
+    "authors": [
+        {
+            "name": "ShallowRed",
+            "email": "contact@shallowred.com",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/ShallowRed/kirby-collection-manager",
+    "support": {
+        "issues": "https://github.com/ShallowRed/kirby-collection-manager/issues",
+        "source": "https://github.com/ShallowRed/kirby-collection-manager"
+    },
+    "require": {
+        "php": ">=8.1",
+        "getkirby/composer-installer": "^1.1",
+        "lukaskleinschmidt/kirby-snippet-controller": "^2.2"
+    },
+    "require-dev": {
+        "getkirby/cli": "^1.0",
+        "phpunit/phpunit": "^10.0",
+        "squizlabs/php_codesniffer": "^3.13.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "KirbyCollectionManager\\": "classes/"
+        },
+        "files": [
+            "index.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "KirbyCollectionManager\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "getkirby/composer-installer": true
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage",
+        "lint": "phpcs",
+        "lint:fix": "phpcbf"
+    },
+    "extra": {
+        "kirby": {
+            "name": "Collection Manager",
+            "description": "Advanced collection management with AJAX pagination, search, and filtering",
+            "category": "content"
+        }
+    }
 }

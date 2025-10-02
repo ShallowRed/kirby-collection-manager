@@ -344,7 +344,7 @@ class CollectionController
     /**
      * Helper method to build URLs with preserved parameters
      */
-    public static function buildUrl($page, $params = [])
+    public static function buildUrl($page, $params = [], $paginationParam = 'p')
     {
         $currentParams = [];
 
@@ -355,7 +355,7 @@ class CollectionController
 
         // Preserve taxonomy filters - get all current GET parameters except pagination
         foreach ($_GET as $key => $value) {
-            if ($key !== 'p' && $key !== 'json' && $value) {
+            if ($key !== $paginationParam && $key !== 'json' && $value) {
                 $currentParams[$key] = $value;
             }
         }

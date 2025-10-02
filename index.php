@@ -25,6 +25,7 @@ Kirby::plugin('shallowred/collection-manager', [
 
   'snippets' => [
     'collection-pagination' => __DIR__ . '/snippets/collection-pagination.php',
+    'collection-pagination.controller' => __DIR__ . '/controllers/collection-pagination.php',
     'current-page-indicator' => __DIR__ . '/snippets/current-page-indicator.php',
     'collection-items' => __DIR__ . '/snippets/collection-items.php',
     'collection-item' => __DIR__ . '/snippets/collection-item.php',
