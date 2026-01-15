@@ -12,7 +12,7 @@ $searchUrl = $page->url();
 
 ?>
 
-<div class="collection-search">
+<div class="collection-search" data-testid="collection-search">
   <form <?php echo attr(array_filter([
     'class' => 'collection-search__form',
     'action' => $searchUrl,
@@ -39,12 +39,14 @@ $searchUrl = $page->url();
         'name' => $searchParam,
         'value' => $currentSearch,
         'placeholder' => $placeholder,
-        'class' => 'collection-search__input'
+        'class' => 'collection-search__input',
+        'data-testid' => 'collection-search-input'
       ]) ?>>
 
       <button <?php echo attr([
         'type' => 'submit',
-        'class' => 'collection-search__submit'
+        'class' => 'collection-search__submit',
+        'data-testid' => 'collection-search-submit'
       ]) ?>>
         <span class="collection-search__submit-text"><?= t('collection.search.submit', 'Search') ?></span>
         <span <?php echo attr([
@@ -59,6 +61,7 @@ $searchUrl = $page->url();
         'href' => $clearUrl,
         'class' => 'collection-search__clear',
         'title' => t('collection.search.clear', 'Clear search'),
+        'data-testid' => 'collection-search-clear',
         'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,

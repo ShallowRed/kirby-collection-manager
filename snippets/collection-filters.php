@@ -11,10 +11,10 @@ $htmxSwap = 'innerHTML show:window:top';
 
 ?>
 
-<div class="collection-filters">
+<div class="collection-filters" data-testid="collection-filters">
 
   <?php foreach ($taxonomies as $taxonomy) : ?>
-    <div class="collection-filters__group">
+    <div class="collection-filters__group" data-testid="collection-filter-group-<?= esc($taxonomy['param'], 'html') ?>">
       <h4 class="collection-filters__label"><?php echo esc($taxonomy['label'], 'html') ?></h4>
 
       <div class="collection-filters__options">
@@ -28,6 +28,7 @@ $htmxSwap = 'innerHTML show:window:top';
           'class' => 'collection-filter' . (!$taxonomy['hasActiveFilter'] ? ' collection-filter--active' : ''),
           'data-param' => $taxonomy['param'],
           'data-value' => '',
+          'data-testid' => 'collection-filter-' . $taxonomy['param'] . '-all',
           'hx-get' => $htmxEnabled ? $allHtmxUrl : null,
           'hx-target' => $htmxEnabled ? $htmxTarget : null,
           'hx-swap' => $htmxEnabled ? $htmxSwap : null,
@@ -47,6 +48,7 @@ $htmxSwap = 'innerHTML show:window:top';
             'class' => 'collection-filter' . ($option['isActive'] ? ' collection-filter--active' : ''),
             'data-param' => $option['param'],
             'data-value' => $option['value'],
+            'data-testid' => 'collection-filter-' . $option['param'] . '-' . Str::slug($option['value']),
             'hx-get' => $htmxEnabled ? $optionHtmxUrl : null,
             'hx-target' => $htmxEnabled ? $htmxTarget : null,
             'hx-swap' => $htmxEnabled ? $htmxSwap : null,
@@ -67,6 +69,7 @@ $htmxSwap = 'innerHTML show:window:top';
       <a <?php echo attr(array_filter([
         'href' => $clearAllUrl,
         'class' => 'collection-filters__clear',
+        'data-testid' => 'collection-filters-clear',
         'hx-get' => $htmxEnabled ? $clearAllHtmxUrl : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,

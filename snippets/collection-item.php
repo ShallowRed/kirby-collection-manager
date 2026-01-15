@@ -13,7 +13,8 @@ if (!($shouldRender ?? true)) {
 <article<?php echo attr([
   'class' => 'collection-item',
   'data-id' => $item->id(),
-  'data-order' => $orderIndex
+  'data-order' => $orderIndex,
+  'data-testid' => 'collection-item-' . $item->id()
 ]) ?>>
 
   <?php if ($hasImage) : ?>

@@ -11,6 +11,11 @@ Kirby::plugin('shallowred/collection-manager', [
   ],
 
   'options' => [
+    // Debug mode - enable for development
+    'debug' => false,
+    // Events/hooks - enable to use hooks
+    'events' => true,
+    // Pagination defaults
     'pagination' => [
       'range' => 10,
       'cssClasses' => [

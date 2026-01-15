@@ -15,7 +15,7 @@ $htmxSwap = 'innerHTML show:window:top';
 <nav class="collection-pagination collection-pagination--empty"></nav>
 <?php else : ?>
 <nav
-  <?php echo attr(['class' => $cssClasses['nav'], 'role' => 'navigation', 'aria-label' => 'Collection pagination']) ?>>
+  <?php echo attr(['class' => $cssClasses['nav'], 'role' => 'navigation', 'aria-label' => 'Collection pagination', 'data-testid' => 'collection-pagination']) ?>>
   <ul>
     <!-- First Page Button -->
     <li <?php echo attr(['class' => $firstPageClasses]) ?>>
@@ -23,6 +23,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'href' => $firstPageUrl,
       'data-page' => '1',
       'aria-label' => $firstPageLabel,
+      'data-testid' => 'collection-pagination-first',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
       'hx-get' => $htmxEnabled && $hasPrevPage ? $firstPageUrl . (strpos($firstPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
@@ -42,6 +43,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'href' => $prevPageUrl,
       'data-page' => $hasPrevPage ? $currentPage - 1 : 1,
       'aria-label' => $prevPageLabel,
+      'data-testid' => 'collection-pagination-prev',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
       'hx-get' => $htmxEnabled && $hasPrevPage ? $prevPageUrl . (strpos($prevPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
@@ -67,6 +69,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'href' => $pageUrl,
       'data-page' => $pageNum,
       'aria-current' => $isCurrentPage ? 'page' : null,
+      'data-testid' => 'collection-pagination-page-' . $pageNum,
       'tabindex' => $isCurrentPage ? '-1' : null,
       'aria-label' => $pageLabel,
       'hx-get' => $htmxEnabled && !$isCurrentPage ? $pageUrl . (strpos($pageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
@@ -85,6 +88,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'href' => $nextPageUrl,
       'data-page' => $hasNextPage ? $currentPage + 1 : $totalPages,
       'aria-label' => $nextPageLabel,
+      'data-testid' => 'collection-pagination-next',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
       'hx-get' => $htmxEnabled && $hasNextPage ? $nextPageUrl . (strpos($nextPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
@@ -104,6 +108,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'href' => $lastPageUrl,
       'data-page' => $totalPages,
       'aria-label' => $lastPageLabel,
+      'data-testid' => 'collection-pagination-last',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
       'hx-get' => $htmxEnabled && $hasNextPage ? $lastPageUrl . (strpos($lastPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
