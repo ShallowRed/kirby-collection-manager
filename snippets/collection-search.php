@@ -2,17 +2,30 @@
 
 /**
  * Collection Manager - Search Form Snippet
- * Simple presentation-focused snippet using snippet controller
+ * Uses htmx for AJAX search functionality
  */
+
+$htmxEnabled = $config['enableJs'] ?? true;
+$htmxTarget = '#collection-content';
+$htmxSwap = 'innerHTML show:window:top';
+$searchUrl = $page->url();
 
 ?>
 
 <div class="collection-search">
-  <form <?php echo attr([
+  <form <?php echo attr(array_filter([
     'class' => 'collection-search__form',
-    'action' => $page->url(),
-    'method' => 'get'
-  ]) ?>>
+    'action' => $searchUrl,
+    'method' => 'get',
+    'hx-get' => $htmxEnabled ? $searchUrl : null,
+    'hx-target' => $htmxEnabled ? $htmxTarget : null,
+    'hx-swap' => $htmxEnabled ? $htmxSwap : null,
+    'hx-push-url' => $htmxEnabled ? 'true' : null,
+    'hx-include' => $htmxEnabled ? '[name]' : null
+  ])) ?>>
+    <?php if ($htmxEnabled) : ?>
+    <input type="hidden" name="htmx" value="1">
+    <?php endif ?>
     <div class="collection-search__field">
       <label <?php echo attr([
         'for' => 'collection-search-input',
@@ -42,11 +55,15 @@
     </div>
 
     <?php if ($hasSearch) : ?>
-      <a <?php echo attr([
+      <a <?php echo attr(array_filter([
         'href' => $clearUrl,
         'class' => 'collection-search__clear',
-        'title' => 'Clear search'
-      ]) ?>>
+        'title' => 'Clear search',
+        'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+        'hx-target' => $htmxEnabled ? $htmxTarget : null,
+        'hx-swap' => $htmxEnabled ? $htmxSwap : null,
+        'hx-push-url' => $htmxEnabled ? $clearUrl : null
+      ])) ?>>
         <span class="collection-search__clear-text">Clear</span>
         <span <?php echo attr([
           'class' => 'collection-search__clear-icon',

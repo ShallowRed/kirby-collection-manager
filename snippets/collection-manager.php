@@ -3,83 +3,72 @@
 /**
  * Collection Manager - Main Wrapper Snippet
  * This is the default wrapper that contains all collection manager components
+ * Uses htmx for AJAX interactions
  */
 
 $cssClass = trim($config['containers']['wrapper'] ?? '', '.');
+$htmxTarget = $config['htmx']['target'] ?? '#collection-content';
+$htmxSwap = $config['htmx']['swap'] ?? 'innerHTML';
 ?>
+
+<?php if ($config['enableJs'] ?? true) : ?>
+<!-- htmx library -->
+<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+<?php endif ?>
 
 <div <?php echo attr([
   'class' => $cssClass,
-  'data-collection-manager' => true
+  'data-collection-manager' => true,
+  'id' => 'collection-manager'
 ]) ?>>
 
-  <?php if ($config['enableSearch'] ?? true) : ?>
-    <!-- Search Form -->
-    <div <?php echo attr(['class' => trim($config['containers']['search'] ?? '', '.')]) ?>>
-    <?php echo $snippets['search'] ?? '' ?>
-    </div>
-  <?php endif ?>
+  <div id="collection-content">
+    <?php if ($config['enableSearch'] ?? true) : ?>
+      <!-- Search Form -->
+      <div <?php echo attr(['class' => trim($config['containers']['search'] ?? '', '.')]) ?>>
+      <?php echo $snippets['search'] ?? '' ?>
+      </div>
+    <?php endif ?>
 
-  <?php if ($config['enableFilters'] ?? true) : ?>
-    <!-- Taxonomy Filters -->
-    <div <?php echo attr(['class' => trim($config['containers']['filters'] ?? '', '.')]) ?>>
-    <?php echo $snippets['filters'] ?? '' ?>
-    </div>
-  <?php endif ?>
+    <?php if ($config['enableFilters'] ?? true) : ?>
+      <!-- Taxonomy Filters -->
+      <div <?php echo attr(['class' => trim($config['containers']['filters'] ?? '', '.')]) ?>>
+      <?php echo $snippets['filters'] ?? '' ?>
+      </div>
+    <?php endif ?>
 
-  <!-- Collection Items -->
-  <div <?php echo attr([
-  'class' => trim($config['containers']['items'] ?? '', '.'),
-  'data-replacementtop' => 'true',
-  'data-offset' => '100'
-]) ?>>
-    <?php echo $snippets['items'] ?? '' ?>
+    <!-- Collection Items -->
+    <div <?php echo attr([
+    'class' => trim($config['containers']['items'] ?? '', '.'),
+    'data-replacementtop' => 'true',
+    'data-offset' => '100'
+  ]) ?>>
+      <?php echo $snippets['items'] ?? '' ?>
+    </div>
+
+    <!-- Pagination and Indicator -->
+    <div class="collection-pagination-wrapper">
+      <?php echo $snippets['pagination'] ?? '' ?>
+
+      <?php echo $snippets['indicator'] ?? '' ?>
+    </div>
   </div>
 
-  <!-- Pagination and Indicator -->
-  <div class="collection-pagination-wrapper">
-    <?php echo $snippets['pagination'] ?? '' ?>
-
-    <?php echo $snippets['indicator'] ?? '' ?>
-  </div>
-
-  <?php if ($config['enableJs'] ?? true) : ?>
-    <!-- Auto-initialize JavaScript -->
+  <?php if (($config['enableJs'] ?? true) && ($config['useIsotope'] ?? false)) : ?>
+    <!-- Isotope integration (optional) -->
     <script type="module">
-      import { CollectionManager } from '/site/plugins/kirby-collection-manager/lib/index.js';
+      import { IsotopeManager } from '/site/plugins/kirby-collection-manager/lib/isotope.js';
 
-      const manager = new CollectionManager({
-        contentRoute: <?php echo json_encode($page->url()) ?>,
-        useIsotope: <?php echo json_encode($config['useIsotope'] ?? false) ?>,
-        debug: <?php echo json_encode(kirby()->option('debug', false)) ?>,
-        paginationParam: <?php echo json_encode($config['pagination']['param'] ?? 'p') ?>,
-        searchParam: <?php echo json_encode($config['search']['param'] ?? 'q') ?>,
-        afterReplace: () => {
-          // Re-attach event listeners after content replacement
-          initializeCollectionManager(manager);
-        }
+      const isotope = new IsotopeManager({
+        container: '.collection-items__list',
+        itemSelector: '.collection-item',
+        options: <?php echo json_encode($config['isotopeOptions'] ?? []) ?>
       });
 
-      function initializeCollectionManager(manager) {
-        // Pagination links
-        document.querySelectorAll(<?php echo json_encode($config['containers']['pagination']) ?> + ' a').forEach(link => {
-          manager.listenPaginationEvent(link);
-        });
-
-        // Taxonomy filter links
-        document.querySelectorAll('[data-param]').forEach(link => {
-          manager.listenTaxonomyEvent(link);
-        });
-
-        // Search form
-        const searchForm = document.querySelector(<?php echo json_encode($config['containers']['search']) ?> + ' form');
-        if (searchForm) {
-          manager.listenSearchEvent(searchForm);
-        }
-      }
-
-      // Initial setup
-      initializeCollectionManager(manager);
+      // Re-initialize Isotope after htmx swaps
+      document.body.addEventListener('htmx:afterSwap', () => {
+        isotope.reinit();
+      });
     </script>
   <?php endif ?>
 

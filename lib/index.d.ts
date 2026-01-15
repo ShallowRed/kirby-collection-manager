@@ -1,20 +1,11 @@
 /**
  * TypeScript definitions for Kirby Collection Manager
- * Add this file to your project for better IntelliSense and type checking
+ * htmx-based implementation
  */
 
-export interface CollectionManagerOptions {
-  /** The route for your collection page (required) */
-  contentRoute: string;
-  /** Enable Isotope.js animations */
-  useIsotope?: boolean;
-  /** Options passed to Isotope constructor */
-  isotopeOptions?: IsotopeOptions;
-  /** Callback after content replacement */
-  afterReplace?: () => void;
-  /** Enable debug logging */
-  debug?: boolean;
-}
+// ============================================================================
+// Isotope Manager (Optional masonry layouts)
+// ============================================================================
 
 export interface IsotopeOptions {
   /** CSS selector for grid items */
@@ -55,115 +46,73 @@ export interface IsotopeOptions {
   initLayout?: boolean;
 }
 
-export interface ReplacementData {
-  /** CSS selector for the container to replace content in */
-  containerSelector: string;
-  /** CSS selector for individual items */
-  itemSelector: string;
-  /** Optional inner selector for item content */
-  itemInnerSelector?: string;
-  /** HTML content to replace */
-  data: string;
-  /** Whether to replace outerHTML instead of innerHTML */
-  outerHTML?: boolean;
-  /** Whether to use Isotope for this replacement */
-  isotope?: boolean;
+export interface IsotopeManagerOptions {
+  /** CSS selector for the container */
+  container?: string;
+  /** CSS selector for items */
+  itemSelector?: string;
+  /** Isotope configuration options */
+  options?: IsotopeOptions;
 }
 
-export interface AjaxResponse {
-  /** Array of content replacements to perform */
-  replacements: ReplacementData[];
+export declare class IsotopeManager {
+  constructor(options: IsotopeManagerOptions);
+
+  /** Initialize Isotope instance */
+  init(): Promise<void>;
+
+  /** Create Isotope instance on container */
+  createInstance(): void;
+
+  /** Re-initialize after content swap */
+  reinit(): void;
+
+  /** Trigger layout recalculation */
+  layout(): void;
+
+  /** Filter items by selector */
+  filter(selector: string): void;
+
+  /** Destroy Isotope instance */
+  destroy(): void;
 }
 
-export interface TouchEndCallback {
-  (link: HTMLAnchorElement): void;
+// ============================================================================
+// htmx Configuration Helpers
+// ============================================================================
+
+export interface HtmxConfigOptions {
+  /** Enable browser history for URL updates */
+  historyEnabled?: boolean;
+  /** Request timeout in milliseconds */
+  timeout?: number;
+  /** CSS class for loading indicator */
+  indicatorClass?: string;
 }
 
-export interface TaxonomyEventOptions {
-  /** Callback for touch end events */
-  onTouchEnd?: TouchEndCallback;
+export interface CollectionManagerInitOptions extends HtmxConfigOptions {
+  /** Show loading indicator during requests */
+  loadingIndicator?: boolean;
+  /** Scroll to top after content swap */
+  scrollToTop?: boolean;
+  /** Target container selector */
+  target?: string;
 }
 
-export declare class CollectionManager {
-  /** Base route for the collection */
-  readonly route: string;
+/**
+ * Configure htmx settings for the collection manager
+ */
+export declare function configureHtmx(options?: HtmxConfigOptions): HtmxConfigOptions;
 
-  /** Isotope instances keyed by container selector */
-  readonly isotopes: Record<string, any>;
+/**
+ * Add loading indicator to collection container
+ */
+export declare function addLoadingIndicator(selector?: string): HTMLElement | undefined;
 
-  /** Whether debug mode is enabled */
-  readonly isDebug: boolean;
-
-  /** Isotope constructor (loaded dynamically) */
-  Isotope?: any;
-
-  /**
-   * Creates a new CollectionManager instance
-   * @param options Configuration options
-   */
-  constructor(options: CollectionManagerOptions);
-
-  /**
-   * Log a debug message (only if debug mode is enabled)
-   * @param message The message to log
-   * @param data Optional data to include
-   */
-  log(message: string, data?: any): void;
-
-  /**
-   * Log an error message
-   * @param message The error message
-   * @param error Optional error object
-   */
-  error(message: string, error?: any): void;
-
-  /**
-   * Get the base URL for AJAX requests
-   */
-  get baseUrl(): string;
-
-  /**
-   * Add click event listener to a pagination link
-   * @param paginationLink The link element to listen to
-   */
-  listenPaginationEvent(paginationLink: HTMLElement): void;
-
-  /**
-   * Navigate to a specific page
-   * @param pageNumber The page number to navigate to
-   */
-  paginate(pageNumber: string | number): Promise<void>;
-
-  /**
-   * Add click event listener to a taxonomy filter link
-   * @param taxonomyLink The link element to listen to
-   * @param options Additional options
-   */
-  listenTaxonomyEvent(taxonomyLink: HTMLElement, options?: TaxonomyEventOptions): void;
-
-  /**
-   * Toggle a URL parameter (add if not present, remove if present)
-   * @param param The parameter name
-   * @param value The parameter value
-   */
-  toggleParam(param: string, value: string): Promise<void>;
-
-  /**
-   * Add event listener to a search form
-   * @param form The form element to listen to
-   */
-  listenSearchEvent(form: HTMLFormElement): void;
-
-  /**
-   * Perform a search
-   * @param queryParam The query parameter name
-   * @param query The search query
-   */
-  search(queryParam: string, query: string): Promise<void>;
-
-  /**
-   * Replace page content via AJAX
-   * @param url The URL to fetch content from
+/**
+ * Initialize collection manager with htmx
+ */
+export declare function init(options?: CollectionManagerInitOptions): void;
    */
   replaceContent(url: string): Promise<void>;
 

@@ -2,8 +2,12 @@
 
 /**
  * Collection Manager - Filters Snippet
- * Renders taxonomy filter links
+ * Uses htmx for AJAX filtering
  */
+
+$htmxEnabled = $config['enableJs'] ?? true;
+$htmxTarget = '#collection-content';
+$htmxSwap = 'innerHTML show:window:top';
 
 ?>
 
@@ -15,23 +19,39 @@
 
       <div class="collection-filters__options">
         <!-- All/Clear option -->
-        <a <?php echo attr([
-          'href' => $taxonomy['allUrl'],
+        <?php
+        $allUrl = $taxonomy['allUrl'];
+        $allHtmxUrl = $allUrl . (strpos($allUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+        ?>
+        <a <?php echo attr(array_filter([
+          'href' => $allUrl,
           'class' => 'collection-filter' . (!$taxonomy['hasActiveFilter'] ? ' collection-filter--active' : ''),
           'data-param' => $taxonomy['param'],
-          'data-value' => ''
-        ]) ?>>
+          'data-value' => '',
+          'hx-get' => $htmxEnabled ? $allHtmxUrl : null,
+          'hx-target' => $htmxEnabled ? $htmxTarget : null,
+          'hx-swap' => $htmxEnabled ? $htmxSwap : null,
+          'hx-push-url' => $htmxEnabled ? $allUrl : null
+        ])) ?>>
           All <?php echo esc($taxonomy['label'], 'html') ?>s
         </a>
 
         <!-- Individual filter options -->
         <?php foreach ($taxonomy['options'] as $option) : ?>
-          <a <?php echo attr([
-            'href' => $option['url'],
+          <?php
+          $optionUrl = $option['url'];
+          $optionHtmxUrl = $optionUrl . (strpos($optionUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+          ?>
+          <a <?php echo attr(array_filter([
+            'href' => $optionUrl,
             'class' => 'collection-filter' . ($option['isActive'] ? ' collection-filter--active' : ''),
             'data-param' => $option['param'],
-            'data-value' => $option['value']
-          ]) ?>>
+            'data-value' => $option['value'],
+            'hx-get' => $htmxEnabled ? $optionHtmxUrl : null,
+            'hx-target' => $htmxEnabled ? $htmxTarget : null,
+            'hx-swap' => $htmxEnabled ? $htmxSwap : null,
+            'hx-push-url' => $htmxEnabled ? $optionUrl : null
+          ])) ?>>
             <?php echo esc($option['label'], 'html') ?>
           </a>
         <?php endforeach ?>
@@ -40,11 +60,18 @@
   <?php endforeach ?>
 
   <?php if ($hasActiveFilters) : ?>
+    <?php
+    $clearAllHtmxUrl = $clearAllUrl . (strpos($clearAllUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+    ?>
     <div class="collection-filters__actions">
-      <a <?php echo attr([
+      <a <?php echo attr(array_filter([
         'href' => $clearAllUrl,
-        'class' => 'collection-filters__clear'
-      ]) ?>>
+        'class' => 'collection-filters__clear',
+        'hx-get' => $htmxEnabled ? $clearAllHtmxUrl : null,
+        'hx-target' => $htmxEnabled ? $htmxTarget : null,
+        'hx-swap' => $htmxEnabled ? $htmxSwap : null,
+        'hx-push-url' => $htmxEnabled ? $clearAllUrl : null
+      ])) ?>>
         Clear all filters
       </a>
     </div>

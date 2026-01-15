@@ -139,8 +139,9 @@ class CollectionController
         // Generate HTML snippets
     $snippets = $this->generateSnippets($paginatedCollection, $totalCount);
 
-        // Handle AJAX requests
-    if ($this->isAjaxRequest()) {
+        // Handle AJAX requests (htmx or legacy JSON)
+    $ajaxType = $this->isAjaxRequest();
+    if ($ajaxType) {
       return $this->handleAjaxRequest($paginatedCollection, $snippets);
     }
 
@@ -339,13 +340,72 @@ class CollectionController
 
   protected function isAjaxRequest()
   {
-    return get('json') && (
+    // Check for htmx request
+    if (get('htmx') || isset($_SERVER['HTTP_HX_REQUEST'])) {
+      return 'htmx';
+    }
+
+    // Check for legacy JSON request
+    if (get('json') && (
           ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest' ||
           strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false
-      );
+      )) {
+      return 'json';
+    }
+
+    return false;
   }
 
   protected function handleAjaxRequest($collection, $snippets)
+  {
+    $requestType = $this->isAjaxRequest();
+
+    // Handle htmx requests - return HTML fragment
+    if ($requestType === 'htmx') {
+      return $this->handleHtmxRequest($collection, $snippets);
+    }
+
+    // Handle legacy JSON requests
+    return $this->handleJsonRequest($collection, $snippets);
+  }
+
+  protected function handleHtmxRequest($collection, $snippets)
+  {
+    header('Content-Type: text/html; charset=utf-8');
+
+    // Return the HTML content that htmx will swap
+    $html = '';
+
+    // Search section
+    if ($this->config['enableSearch'] ?? true) {
+      $html .= '<div class="' . trim($this->config['containers']['search'] ?? '', '.') . '">';
+      $html .= $snippets['search'] ?? '';
+      $html .= '</div>';
+    }
+
+    // Filters section
+    if ($this->config['enableFilters'] ?? true) {
+      $html .= '<div class="' . trim($this->config['containers']['filters'] ?? '', '.') . '">';
+      $html .= $snippets['filters'] ?? '';
+      $html .= '</div>';
+    }
+
+    // Items section
+    $html .= '<div class="' . trim($this->config['containers']['items'] ?? '', '.') . '" data-replacementtop="true" data-offset="100">';
+    $html .= $snippets['items'] ?? '';
+    $html .= '</div>';
+
+    // Pagination and indicator
+    $html .= '<div class="collection-pagination-wrapper">';
+    $html .= $snippets['pagination'] ?? '';
+    $html .= $snippets['indicator'] ?? '';
+    $html .= '</div>';
+
+    echo $html;
+    exit;
+  }
+
+  protected function handleJsonRequest($collection, $snippets)
   {
     header('Content-Type: application/json');
 
