@@ -9,6 +9,11 @@ use KirbyCollectionManager\Config\FilterConfig;
 use KirbyCollectionManager\Exception\CollectionException;
 use KirbyCollectionManager\Exception\InvalidConfigurationException;
 use KirbyCollectionManager\Exception\CollectionNotFoundException;
+use KirbyCollectionManager\Query\CollectionQuery;
+use KirbyCollectionManager\Url\UrlBuilder;
+use KirbyCollectionManager\Response\ResponseFactory;
+use KirbyCollectionManager\Response\RequestDetector;
+use KirbyCollectionManager\Render\SnippetRenderer;
 
 class CollectionController
 {
@@ -20,6 +25,16 @@ class CollectionController
    * Validated configuration object (optional, for new usage pattern)
    */
   protected ?CollectionConfig $validatedConfig = null;
+
+  /**
+   * URL builder instance
+   */
+  protected ?UrlBuilder $urlBuilder = null;
+
+  /**
+   * Collection query instance
+   */
+  protected ?CollectionQuery $query = null;
 
   public function __construct($page, $site, $config = [])
   {
@@ -122,6 +137,134 @@ class CollectionController
     return $controller->process();
   }
 
+  /**
+   * Get the URL builder instance
+   */
+  public function getUrlBuilder(): UrlBuilder
+  {
+    if ($this->urlBuilder === null) {
+      $this->urlBuilder = new UrlBuilder(
+        $this->page,
+        $this->config['pagination']['param'] ?? 'p',
+        $this->config['search']['param'] ?? 'q'
+      );
+    }
+    return $this->urlBuilder;
+  }
+
+  /**
+   * Process using the new Query Pipeline architecture
+   *
+   * This method uses the new CollectionQuery, UrlBuilder, and ResponseFactory
+   * classes for improved maintainability and testability.
+   *
+   * @return array Template data
+   */
+  public function processWithQuery(): array
+  {
+    // Build query pipeline
+    $this->query = $this->buildQueryPipeline();
+
+    // Get the processed collection
+    $collection = $this->query->get();
+
+    // Create renderer with URL builder
+    $renderer = new SnippetRenderer(
+      $this->config,
+      $this->page,
+      $this->getUrlBuilder()
+    );
+
+    // Generate snippets
+    $snippets = $renderer->renderAll($collection, $this->query);
+
+    // Handle AJAX requests using ResponseFactory
+    if (ResponseFactory::isAjaxRequest()) {
+      ResponseFactory::handleIfAjax($collection, $snippets, $this->config);
+      // Won't reach here - handlers call exit
+    }
+
+    // Return template data
+    return $this->buildTemplateData($collection, $snippets);
+  }
+
+  /**
+   * Build the collection query pipeline
+   */
+  protected function buildQueryPipeline(): CollectionQuery
+  {
+    $baseCollection = $this->getBaseCollection();
+    $query = CollectionQuery::from($baseCollection);
+
+    // Apply search
+    $searchParam = $this->config['search']['param'] ?? 'q';
+    if ($this->config['enableSearch'] ?? true) {
+      $searchTerm = get($searchParam);
+      if ($searchTerm) {
+        $query->search($searchTerm, $this->config['search']['fields'] ?? ['title', 'text']);
+      }
+    }
+
+    // Apply taxonomy filters
+    if ($this->config['enableFilters'] ?? true) {
+      foreach ($this->config['taxonomies'] ?? [] as $taxonomy) {
+        $value = get($taxonomy['param']) ?? param($taxonomy['param']);
+        if ($value) {
+          $query->filter($taxonomy['field'], $value);
+        }
+      }
+    }
+
+    // Sort
+    $sorting = $this->config['sorting'] ?? [];
+    $query->sort(
+      $sorting['default'] ?? 'date',
+      $sorting['direction'] ?? 'desc'
+    );
+
+    // Paginate
+    if ($this->config['enablePagination'] ?? true) {
+      $pagination = $this->config['pagination'] ?? [];
+      $query->paginate(
+        $pagination['limit'] ?? 10,
+        $pagination['param'] ?? 'p'
+      );
+    }
+
+    return $query;
+  }
+
+  /**
+   * Build the template data array
+   */
+  protected function buildTemplateData($collection, array $snippets): array
+  {
+    $returnData = [
+      'collection' => $collection,
+      'config' => $this->config,
+      'snippets' => $snippets,
+      'query' => $this->query,
+      'urlBuilder' => $this->getUrlBuilder(),
+      'hasActiveFilters' => $this->query?->hasActiveFiltersOrSearch() ?? $this->hasActiveFilters(),
+    ];
+
+    // Add pagination info
+    if ($this->config['enablePagination'] ?? true) {
+      $pagination = $collection->pagination();
+      if ($pagination) {
+        $returnData['currentPage'] = $pagination->page();
+        $returnData['totalPages'] = $pagination->pages();
+      }
+    }
+
+    return array_merge($snippets, $returnData);
+  }
+
+  /**
+   * Legacy process method - maintained for backwards compatibility
+   *
+   * @deprecated Use processWithQuery() for new implementations
+   */
   public function process()
   {
         // Get base collection
