@@ -33,7 +33,7 @@ $htmxSwap = 'innerHTML show:window:top';
           'hx-swap' => $htmxEnabled ? $htmxSwap : null,
           'hx-push-url' => $htmxEnabled ? $allUrl : null
         ])) ?>>
-          All <?php echo esc($taxonomy['label'], 'html') ?>s
+          <?= Str::template(t('collection.filters.all', 'All {label}'), ['label' => esc($taxonomy['label'], 'html')]) ?>
         </a>
 
         <!-- Individual filter options -->
@@ -72,7 +72,7 @@ $htmxSwap = 'innerHTML show:window:top';
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,
         'hx-push-url' => $htmxEnabled ? $clearAllUrl : null
       ])) ?>>
-        Clear all filters
+        <?= t('collection.filters.clear', 'Clear all filters') ?>
       </a>
     </div>
   <?php endif ?>

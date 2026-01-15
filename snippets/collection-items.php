@@ -18,9 +18,12 @@
 <?php else: ?>
   <div class="collection-empty">
     <div class="collection-empty__icon">📝</div>
-    <h3 class="collection-empty__title">No items found</h3>
+    <h3 class="collection-empty__title"><?= t('collection.empty.title', 'No items found') ?></h3>
     <p class="collection-empty__message">
-      <?php echo esc($hasActiveFilters ? 'Try adjusting your search or filter criteria.' : 'There are no items to display yet.', 'html') ?>
+      <?= $hasActiveFilters
+        ? t('collection.empty.filtered', 'Try adjusting your search or filter criteria.')
+        : t('collection.empty.default', 'There are no items to display yet.')
+      ?>
     </p>
   </div>
 <?php endif ?>

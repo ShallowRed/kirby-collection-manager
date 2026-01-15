@@ -69,7 +69,7 @@ if (!($shouldRender ?? true)) {
         'href' => $item->url(),
         'class' => 'collection-item__link'
       ]) ?>>
-        Read more
+        <?= t('collection.item.readmore', 'Read more') ?>
       </a>
     </div>
   </div>

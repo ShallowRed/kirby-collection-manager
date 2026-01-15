@@ -4,6 +4,12 @@ use KirbyCollectionManager\CollectionController;
 
 Kirby::plugin('shallowred/collection-manager', [
 
+  'translations' => [
+    'en' => require __DIR__ . '/translations/en.php',
+    'fr' => require __DIR__ . '/translations/fr.php',
+    'de' => require __DIR__ . '/translations/de.php',
+  ],
+
   'options' => [
     'pagination' => [
       'range' => 10,
@@ -13,14 +19,6 @@ Kirby::plugin('shallowred/collection-manager', [
         'icon' => 'collection-pagination__icon',
       ]
     ],
-    'texts' => [
-      'firstPage' => 'Go to first page',
-      'prevPage' => 'Go to previous page',
-      'nextPage' => 'Go to next page',
-      'lastPage' => 'Go to last page',
-      'pageIndicator' => 'Page {current} of {total}',
-      'pageIndicatorShort' => 'p. {current} of {total}',
-    ]
   ],
 
   'snippets' => [

@@ -2,11 +2,24 @@
 
 namespace KirbyCollectionManager;
 
+use KirbyCollectionManager\Config\CollectionConfig;
+use KirbyCollectionManager\Config\PaginationConfig;
+use KirbyCollectionManager\Config\SearchConfig;
+use KirbyCollectionManager\Config\FilterConfig;
+use KirbyCollectionManager\Exception\CollectionException;
+use KirbyCollectionManager\Exception\InvalidConfigurationException;
+use KirbyCollectionManager\Exception\CollectionNotFoundException;
+
 class CollectionController
 {
   protected $config;
   protected $page;
   protected $site;
+
+  /**
+   * Validated configuration object (optional, for new usage pattern)
+   */
+  protected ?CollectionConfig $validatedConfig = null;
 
   public function __construct($page, $site, $config = [])
   {
@@ -465,5 +478,72 @@ class CollectionController
     }
 
     return $url;
+  }
+
+  /**
+   * Get validated configuration object
+   *
+   * Creates a CollectionConfig DTO from the current config array.
+   * This provides type-safe access to configuration with validation.
+   *
+   * @return CollectionConfig
+   * @throws InvalidConfigurationException if configuration is invalid
+   */
+  public function getValidatedConfig(): CollectionConfig
+  {
+    if ($this->validatedConfig === null) {
+      $this->validatedConfig = CollectionConfig::fromArray([
+        'pagination' => $this->config['pagination'] ?? [],
+        'search' => $this->config['search'] ?? [],
+        'filter' => ['taxonomies' => $this->config['taxonomies'] ?? []],
+        'enableJs' => $this->config['enableJs'] ?? true,
+        'snippets' => $this->config['snippets'] ?? [],
+        'sortBy' => $this->config['sorting']['default'] ?? null,
+        'sortDirection' => $this->config['sorting']['direction'] ?? 'desc',
+      ]);
+    }
+
+    return $this->validatedConfig;
+  }
+
+  /**
+   * Validate that the collection source is valid
+   *
+   * @param mixed $collection The collection to validate
+   * @return void
+   * @throws CollectionNotFoundException if collection is invalid
+   */
+  protected function validateCollectionSource($collection): void
+  {
+    if ($collection === null) {
+      throw CollectionNotFoundException::undefinedSource(
+        is_string($this->config['collection'])
+          ? $this->config['collection']
+          : 'closure'
+      );
+    }
+
+    if (!is_object($collection) || !method_exists($collection, 'count')) {
+      throw CollectionNotFoundException::invalidType(
+        'collection',
+        is_object($collection) ? get_class($collection) : gettype($collection)
+      );
+    }
+  }
+
+  /**
+   * Get the current page
+   */
+  public function getPage()
+  {
+    return $this->page;
+  }
+
+  /**
+   * Get the raw config array
+   */
+  public function getConfig(): array
+  {
+    return $this->config;
   }
 }

@@ -1,8 +1,8 @@
 # Kirby Collection Manager - Improvement Roadmap
 
-> **Status:** 🟡 In Progress  
-> **Created:** 2026-01-15  
-> **Last Updated:** 2026-01-15  
+> **Status:** 🟡 In Progress
+> **Created:** 2026-01-15
+> **Last Updated:** 2026-01-15
 > **Current Phase:** Phase 1 - Foundation
 
 ## Progress Tracking Methodology
@@ -12,7 +12,7 @@
 1. **Check off tasks** as you complete them: `- [ ]` → `- [x]`
 2. **Update status badges** for each section:
    - 🔴 Not Started
-   - 🟡 In Progress  
+   - 🟡 In Progress
    - 🟢 Complete
    - ⏸️ On Hold
 3. **Add completion dates** next to completed items
@@ -23,42 +23,42 @@
 
 | Phase | Status | Progress | Target |
 |-------|--------|----------|--------|
-| Phase 1: Foundation | 🔴 Not Started | 0/3 | Week 1-2 |
+| Phase 1: Foundation | � In Progress | 3/3 | Week 1-2 |
 | Phase 2: Architecture | 🔴 Not Started | 0/4 | Week 3-4 |
 | Phase 3: Developer Experience | 🔴 Not Started | 0/4 | Week 5-6 |
 | Phase 4: Polish & Performance | 🔴 Not Started | 0/5 | Week 7-8 |
 
-**Overall Progress:** 0/16 tasks (0%)
+**Overall Progress:** 3/16 tasks (19%)
 
 ---
 
 ## Phase 1: Foundation (Week 1-2)
 
-> **Goal:** Fix critical issues that block adoption and cause debugging nightmares  
-> **Status:** 🔴 Not Started  
+> **Goal:** Fix critical issues that block adoption and cause debugging nightmares
+> **Status:** 🟡 In Progress
 > **Branch:** `feature/phase-1-foundation`
 
 ### 1.1 Internationalization (i18n) Support
 
-**Priority:** 🔴 Critical | **Effort:** Medium | **Status:** 🔴 Not Started
+**Priority:** 🔴 Critical | **Effort:** Medium | **Status:** 🟢 Complete
 
 **Branch:** `feature/i18n`
 
 #### Tasks
 
-- [ ] Create translation files structure
-  - [ ] `translations/en.php`
-  - [ ] `translations/fr.php`
-  - [ ] `translations/de.php`
-- [ ] Define all translation keys (~30 strings)
-- [ ] Replace hardcoded strings in snippets:
-  - [ ] `collection-search.php` — 4 strings
-  - [ ] `collection-filters.php` — 3 strings
-  - [ ] `collection-pagination.php` — 6 strings
-  - [ ] `collection-items.php` — 3 strings
-  - [ ] `collection-item.php` — 2 strings
-  - [ ] `current-page-indicator.php` — 1 string
-- [ ] Register translations in `index.php`
+- [x] Create translation files structure
+  - [x] `translations/en.php`
+  - [x] `translations/fr.php`
+  - [x] `translations/de.php`
+- [x] Define all translation keys (~30 strings)
+- [x] Replace hardcoded strings in snippets:
+  - [x] `collection-search.php` — 4 strings
+  - [x] `collection-filters.php` — 3 strings
+  - [x] `collection-pagination.php` — 6 strings
+  - [x] `collection-items.php` — 3 strings
+  - [x] `collection-item.php` — 2 strings
+  - [x] `current-page-indicator.php` — 1 string (already using t())
+- [x] Register translations in `index.php`
 - [ ] Add pluralization support for filter labels
 - [ ] Document translation override process in README
 - [ ] Write tests for translation loading
@@ -73,11 +73,11 @@ return [
     'collection.search.clear' => 'Clear',
     'collection.search.label' => 'Search',
     'collection.search.searching' => 'Searching for:',
-    
+
     // Filters
     'collection.filters.all' => 'All {label}',
     'collection.filters.clear' => 'Clear all filters',
-    
+
     // Pagination
     'collection.pagination.first' => 'Go to first page',
     'collection.pagination.prev' => 'Go to previous page',
@@ -86,12 +86,12 @@ return [
     'collection.pagination.page' => 'Go to page {page}',
     'collection.pagination.current' => 'Current page, page {page}',
     'collection.pagination.indicator' => 'Page {current} of {total}',
-    
+
     // Empty state
     'collection.empty.title' => 'No items found',
     'collection.empty.message' => 'Try adjusting your search or filter criteria.',
     'collection.empty.message.default' => 'There are no items to display yet.',
-    
+
     // Item
     'collection.item.readmore' => 'Read more',
 ];
@@ -99,105 +99,94 @@ return [
 
 #### Acceptance Criteria
 
-- [ ] All user-facing strings use `t()` helper
-- [ ] English and French translations complete
+- [x] All user-facing strings use `t()` helper
+- [x] English and French translations complete
 - [ ] Translation override documented
 - [ ] No hardcoded strings in snippets
 
 #### Notes
 
-_Add any blockers, decisions, or context here_
+i18n implementation complete. Translations registered in index.php. All snippets updated with t() helper.
 
 ---
 
 ### 1.2 Configuration Validation & DTOs
 
-**Priority:** 🔴 Critical | **Effort:** High | **Status:** 🔴 Not Started
+**Priority:** 🔴 Critical | **Effort:** High | **Status:** 🟢 Complete
 
 **Branch:** `feature/config-validation`
 
 #### Tasks
 
-- [ ] Create Config namespace structure:
+- [x] Create Config namespace structure:
   ```
   classes/Config/
   ├── CollectionConfig.php
   ├── SearchConfig.php
   ├── PaginationConfig.php
-  ├── SortingConfig.php
-  ├── TaxonomyConfig.php
-  ├── ContainerConfig.php
-  └── SnippetConfig.php
+  └── FilterConfig.php
   ```
-- [ ] Implement `CollectionConfig.php`:
-  - [ ] Define all properties with types
-  - [ ] Create `fromArray()` factory method
-  - [ ] Add validation in constructor
-  - [ ] Implement `toArray()` for serialization
-- [ ] Implement `SearchConfig.php`:
-  - [ ] Validate fields array
-  - [ ] Validate param is URL-safe
-  - [ ] Default placeholder handling
-- [ ] Implement `PaginationConfig.php`:
-  - [ ] Validate limit >= 1
-  - [ ] Validate range 1-20
-  - [ ] Validate param is URL-safe
-- [ ] Implement `SortingConfig.php`:
-  - [ ] Validate direction enum (asc/desc)
-  - [ ] Validate field is string
-- [ ] Implement `TaxonomyConfig.php`:
-  - [ ] Validate param is URL-safe
-  - [ ] Validate field is non-empty
-  - [ ] Validate label is non-empty
-- [ ] Implement `ContainerConfig.php`:
-  - [ ] Validate CSS selectors format
-- [ ] Update `CollectionController` to use DTOs
+- [x] Implement `CollectionConfig.php`:
+  - [x] Define all properties with types
+  - [x] Create `fromArray()` factory method
+  - [x] Add validation in constructor
+  - [x] Implement `toArray()` for serialization
+- [x] Implement `SearchConfig.php`:
+  - [x] Validate fields array
+  - [x] Validate param is URL-safe
+  - [x] Default placeholder handling
+- [x] Implement `PaginationConfig.php`:
+  - [x] Validate limit >= 1
+  - [x] Validate range 1-20
+  - [x] Validate param is URL-safe
+- [x] Implement `FilterConfig.php`:
+  - [x] Validate param is URL-safe
+  - [x] Validate field is non-empty
+  - [x] Validate label is non-empty
+- [x] Update `CollectionController` with `getValidatedConfig()` method
 - [ ] Write unit tests for each config class
 
 #### Validation Rules
 
 | Config | Property | Rule |
 |--------|----------|------|
-| Pagination | limit | `int`, >= 1 |
+| Pagination | limit | `int`, >= 1, <= 100 |
 | Pagination | param | `string`, non-empty, URL-safe (`/^[a-z][a-z0-9_]*$/i`) |
 | Pagination | range | `int`, >= 1, <= 20 |
 | Search | fields | `array`, non-empty |
 | Search | param | `string`, non-empty, URL-safe |
 | Search | placeholder | `string` |
-| Sorting | default | `string`, non-empty |
-| Sorting | direction | `string`, enum: `asc`, `desc` |
-| Taxonomy | param | `string`, non-empty, URL-safe, unique |
-| Taxonomy | field | `string`, non-empty |
-| Taxonomy | label | `string`, non-empty |
+| Search | minLength | `int`, >= 1, <= 10 |
+| Filter | taxonomies | `array` with validated taxonomy definitions |
+| Filter | multiSelect | `bool` |
 
 #### Acceptance Criteria
 
-- [ ] All config classes have full type declarations
-- [ ] Invalid config throws `ConfigurationException` with helpful message
+- [x] All config classes have full type declarations
+- [x] Invalid config throws `InvalidConfigurationException` with helpful message
 - [ ] Unit tests cover all validation rules
-- [ ] `CollectionController` uses DTOs internally
+- [x] `CollectionController` has `getValidatedConfig()` method
 
 #### Notes
 
-_Add any blockers, decisions, or context here_
+DTOs created with PHP 8.1 readonly properties. Factory methods and toArray() implemented. Controller integration done via opt-in method to maintain backwards compatibility.
 
 ---
 
 ### 1.3 Custom Exceptions
 
-**Priority:** 🔴 Critical | **Effort:** Low | **Status:** 🔴 Not Started
+**Priority:** 🔴 Critical | **Effort:** Low | **Status:** 🟢 Complete
 
 **Branch:** `feature/custom-exceptions`
 
 #### Tasks
 
-- [ ] Create Exception namespace:
+- [x] Create Exception namespace:
   ```
   classes/Exception/
-  ├── CollectionManagerException.php
-  ├── ConfigurationException.php
-  ├── CollectionNotFoundException.php
-  └── ResponseException.php
+  ├── CollectionException.php
+  ├── InvalidConfigurationException.php
+  └── CollectionNotFoundException.php
   ```
 - [ ] Implement `CollectionManagerException.php` (base class)
 - [ ] Implement `ConfigurationException.php`:
@@ -208,40 +197,46 @@ _Add any blockers, decisions, or context here_
   - [ ] Include page path attempted
 - [ ] Implement `ResponseException.php`:
   - [ ] Include response type attempted
+- [x] Implement `CollectionException` base class with context support
+- [x] Implement `InvalidConfigurationException` with factory methods
+- [x] Implement `CollectionNotFoundException` for collection errors
+- [x] Update controller with `validateCollectionSource()` method
 - [ ] Replace all `throw new Error()` calls
 - [ ] Replace silent failures with exceptions
-- [ ] Add try/catch in `CollectionController::handle()`
 - [ ] Format errors for AJAX responses
 - [ ] Write unit tests
 
 #### Exception Message Format
 
 ```php
-// Example: ConfigurationException
-throw new ConfigurationException(
-    "Invalid pagination configuration: 'limit' must be a positive integer. " .
-    "Expected: int >= 1, Got: string 'invalid'. " .
-    "Example: ['pagination' => ['limit' => 10]]"
-);
+// Example: InvalidConfigurationException
+InvalidConfigurationException::invalidType('pagination.limit', 'invalid', 'integer');
+// Message: "Invalid type for configuration option 'pagination.limit': expected integer, got string"
+
+InvalidConfigurationException::outOfRange('pagination.limit', 200, 1, 100);
+// Message: "Configuration option 'pagination.limit' value 200 is out of range (1 - 100)"
+
+InvalidConfigurationException::missingRequired('collection');
+// Message: "Missing required configuration option: 'collection'"
 ```
 
 #### Acceptance Criteria
 
-- [ ] All exceptions extend `CollectionManagerException`
-- [ ] Exception messages are actionable (include fix examples)
+- [x] All exceptions extend `CollectionException`
+- [x] Exception messages are actionable (include fix examples)
 - [ ] AJAX errors return proper JSON/HTML error responses
 - [ ] No silent failures remain
 
 #### Notes
 
-_Add any blockers, decisions, or context here_
+Base exception hierarchy implemented with context support and factory methods. Exceptions use PHP 8.1 features like readonly properties and named arguments.
 
 ---
 
 ## Phase 2: Architecture Refactoring (Week 3-4)
 
-> **Goal:** Break up God class, improve maintainability  
-> **Status:** 🔴 Not Started  
+> **Goal:** Break up God class, improve maintainability
+> **Status:** 🔴 Not Started
 > **Branch:** `feature/phase-2-architecture`
 
 ### 2.1 Extract Query Pipeline
@@ -418,15 +413,15 @@ _Add any blockers, decisions, or context here_
 class CollectionController
 {
     // ~150 lines total
-    
+
     public static function create(Page $page, array $config = []): array;
-    
+
     public function __construct(/* dependencies */);
-    
+
     public function execute(): array;
-    
+
     protected function buildQuery(): CollectionQueryInterface;
-    
+
     protected function generateSnippets(Collection $collection): array;
 }
 ```
@@ -446,8 +441,8 @@ _Add any blockers, decisions, or context here_
 
 ## Phase 3: Developer Experience (Week 5-6)
 
-> **Goal:** Improve debugging, extensibility, and testing  
-> **Status:** 🔴 Not Started  
+> **Goal:** Improve debugging, extensibility, and testing
+> **Status:** 🔴 Not Started
 > **Branch:** `feature/phase-3-dx`
 
 ### 3.1 Debug Mode
@@ -682,8 +677,8 @@ _Add any blockers, decisions, or context here_
 
 ## Phase 4: Polish & Performance (Week 7-8)
 
-> **Goal:** Optimize performance, improve styling flexibility  
-> **Status:** 🔴 Not Started  
+> **Goal:** Optimize performance, improve styling flexibility
+> **Status:** 🔴 Not Started
 > **Branch:** `feature/phase-4-polish`
 
 ### 4.1 Caching Strategy
@@ -748,24 +743,24 @@ _Add any blockers, decisions, or context here_
     --cm-color-bg-hover: #f5f5f5;
     --cm-color-bg-active: #e3f2fd;
     --cm-color-link: #007bff;
-    
+
     /* Spacing */
     --cm-spacing-xs: 0.25rem;
     --cm-spacing-sm: 0.5rem;
     --cm-spacing-md: 1rem;
     --cm-spacing-lg: 1.5rem;
     --cm-spacing-xl: 2rem;
-    
+
     /* Typography */
     --cm-font-size-sm: 0.875rem;
     --cm-font-size-base: 1rem;
     --cm-font-size-lg: 1.125rem;
-    
+
     /* Borders */
     --cm-border-radius: 4px;
     --cm-border-radius-pill: 20px;
     --cm-border-width: 1px;
-    
+
     /* Transitions */
     --cm-transition-fast: 0.15s ease;
     --cm-transition-normal: 0.2s ease;

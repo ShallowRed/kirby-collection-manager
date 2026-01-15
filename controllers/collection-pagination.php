@@ -38,11 +38,11 @@ return function (...$data) {
     $pageUrls[$pageNum] = CollectionController::buildUrl($page, [$paginationParam => $pageNum > 1 ? $pageNum : null], $paginationParam);
   }
 
-  // Accessibility labels
-  $firstPageLabel = 'Go to first page' . (!$hasPrevPage ? ' (disabled)' : '');
-  $prevPageLabel = 'Go to previous page' . (!$hasPrevPage ? ' (disabled)' : '');
-  $nextPageLabel = 'Go to next page' . (!$hasNextPage ? ' (disabled)' : '');
-  $lastPageLabel = 'Go to last page' . (!$hasNextPage ? ' (disabled)' : '');
+  // Accessibility labels (using Kirby's i18n system)
+  $firstPageLabel = t('collection.pagination.first', 'Go to first page') . (!$hasPrevPage ? ' (' . t('collection.pagination.disabled', 'disabled') . ')' : '');
+  $prevPageLabel = t('collection.pagination.prev', 'Go to previous page') . (!$hasPrevPage ? ' (' . t('collection.pagination.disabled', 'disabled') . ')' : '');
+  $nextPageLabel = t('collection.pagination.next', 'Go to next page') . (!$hasNextPage ? ' (' . t('collection.pagination.disabled', 'disabled') . ')' : '');
+  $lastPageLabel = t('collection.pagination.last', 'Go to last page') . (!$hasNextPage ? ' (' . t('collection.pagination.disabled', 'disabled') . ')' : '');
 
   // Button states for CSS classes
   $firstPageClasses = $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-first' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : '');

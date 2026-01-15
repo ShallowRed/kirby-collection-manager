@@ -31,7 +31,7 @@ $searchUrl = $page->url();
         'for' => 'collection-search-input',
         'class' => 'collection-search__label sr-only'
       ]) ?>>
-        Search
+        <?= t('collection.search.label', 'Search') ?>
       </label>
       <input<?php echo attr([
         'type' => 'search',
@@ -46,7 +46,7 @@ $searchUrl = $page->url();
         'type' => 'submit',
         'class' => 'collection-search__submit'
       ]) ?>>
-        <span class="collection-search__submit-text">Search</span>
+        <span class="collection-search__submit-text"><?= t('collection.search.submit', 'Search') ?></span>
         <span <?php echo attr([
           'class' => 'collection-search__submit-icon',
           'aria-hidden' => 'true'
@@ -58,13 +58,13 @@ $searchUrl = $page->url();
       <a <?php echo attr(array_filter([
         'href' => $clearUrl,
         'class' => 'collection-search__clear',
-        'title' => 'Clear search',
+        'title' => t('collection.search.clear', 'Clear search'),
         'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,
         'hx-push-url' => $htmxEnabled ? $clearUrl : null
       ])) ?>>
-        <span class="collection-search__clear-text">Clear</span>
+        <span class="collection-search__clear-text"><?= t('collection.search.clear.button', 'Clear') ?></span>
         <span <?php echo attr([
           'class' => 'collection-search__clear-icon',
           'aria-hidden' => 'true'
@@ -75,7 +75,7 @@ $searchUrl = $page->url();
 
   <?php if ($hasSearch) : ?>
     <div class="collection-search__indicator">
-      <span class="collection-search__indicator-label">Searching for:</span>
+      <span class="collection-search__indicator-label"><?= t('collection.search.searching', 'Searching for:') ?></span>
       <strong class="collection-search__indicator-term">"<?php echo esc($currentSearch, 'html') ?>"</strong>
     </div>
   <?php endif ?>
