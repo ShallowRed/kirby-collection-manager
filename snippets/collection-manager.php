@@ -7,22 +7,27 @@
  */
 
 $cssClass = trim($config['containers']['wrapper'] ?? '', '.');
-$htmxTarget = $config['htmx']['target'] ?? '#collection-content';
-$htmxSwap = $config['htmx']['swap'] ?? 'innerHTML';
+$instanceId = $config['instanceId'] ?? 'collection';
 ?>
 
 <?php if ($config['enableJs'] ?? true) : ?>
-<!-- htmx library -->
-<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+<script>
+  if (!window.collectionManagerHtmxLoaded) {
+    window.collectionManagerHtmxLoaded = true;
+    var cmHtmxScript = document.createElement('script');
+    cmHtmxScript.src = <?= json_encode(kirby()->plugin('shallowred/collection-manager')->asset('htmx.min.js')->url()) ?>;
+    document.head.appendChild(cmHtmxScript);
+  }
+</script>
 <?php endif ?>
 
 <div <?php echo attr([
   'class' => $cssClass,
   'data-collection-manager' => true,
-  'id' => 'collection-manager'
+  'id' => $instanceId
 ]) ?>>
 
-  <div id="collection-content">
+  <div id="<?= esc($instanceId) ?>-content">
     <?php if ($config['enableSearch'] ?? true) : ?>
       <!-- Search Form -->
       <div <?php echo attr(['class' => trim($config['containers']['search'] ?? '', '.')]) ?>>

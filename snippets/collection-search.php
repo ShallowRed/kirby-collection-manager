@@ -5,8 +5,16 @@
  * Uses htmx for AJAX search functionality
  */
 
+// Defensive defaults for when controller doesn't run
+$config = $config ?? [];
+$page = $page ?? page();
+$searchParam = $searchParam ?? 'q';
+$currentSearch = $currentSearch ?? get('q', '');
+$placeholder = $placeholder ?? t('collection.search.placeholder', 'Search...');
+
 $htmxEnabled = $config['enableJs'] ?? true;
-$htmxTarget = '#collection-content';
+$instanceId = $config['instanceId'] ?? 'collection';
+$htmxTarget = '#' . $instanceId . '-content';
 $htmxSwap = 'innerHTML show:window:top';
 $searchUrl = $page->url();
 
@@ -24,7 +32,7 @@ $searchUrl = $page->url();
     'hx-include' => $htmxEnabled ? '[name]' : null
   ])) ?>>
     <?php if ($htmxEnabled) : ?>
-    <input type="hidden" name="htmx" value="1">
+    <input type="hidden" name="htmx" value="<?= esc($instanceId) ?>">
     <?php endif ?>
     <div class="collection-search__field">
       <label <?php echo attr([
@@ -33,7 +41,7 @@ $searchUrl = $page->url();
       ]) ?>>
         <?= t('collection.search.label', 'Search') ?>
       </label>
-      <input<?php echo attr([
+      <input <?php echo attr([
         'type' => 'search',
         'id' => 'collection-search-input',
         'name' => $searchParam,
@@ -62,7 +70,7 @@ $searchUrl = $page->url();
         'class' => 'collection-search__clear',
         'title' => t('collection.search.clear', 'Clear search'),
         'data-testid' => 'collection-search-clear',
-        'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+        'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,
         'hx-push-url' => $htmxEnabled ? $clearUrl : null

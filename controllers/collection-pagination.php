@@ -2,15 +2,21 @@
 
 use KirbyCollectionManager\CollectionController;
 
-return function (...$data) {
-
-  extract($data);
+return function ($collection = null, $page = null, $config = [], $pagination = null, $showPagination = false, $showIndicator = true, $urlBuilder = null, $hasActiveFilters = false) {
 
   // Get the configured pagination parameter name
   $paginationParam = $config['pagination']['param'] ?? 'p';
 
   // Check if pagination should be shown
   $shouldShowPagination = $showPagination && $pagination && !($pagination->limit() > 0 && $pagination->total() === 0);
+
+  // If pagination doesn't exist, return early with empty state
+  if (!$pagination) {
+    return [
+      'shouldShowPagination' => false,
+      'config' => $config,
+    ];
+  }
 
   // CSS classes configuration
   $cssClasses = [
@@ -24,7 +30,8 @@ return function (...$data) {
   $hasNextPage = $pagination->hasNextPage();
   $currentPage = $pagination->page();
   $totalPages = $pagination->pages();
-  $rangePages = $pagination->range($range ?? 5);
+  $range = $config['pagination']['range'] ?? 5;
+  $rangePages = $pagination->range($range);
 
   // Generate URLs for navigation
   $firstPageUrl = !$hasPrevPage ? '#' : CollectionController::buildUrl($page, [$paginationParam => null], $paginationParam);
@@ -50,27 +57,30 @@ return function (...$data) {
   $nextPageClasses = $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : '');
   $lastPageClasses = $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-last' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : '');
 
-  return A::merge($data, compact(
-      'shouldShowPagination',
-      'cssClasses',
-      'hasPrevPage',
-      'hasNextPage',
-      'currentPage',
-      'totalPages',
-      'rangePages',
-      'firstPageUrl',
-      'prevPageUrl',
-      'nextPageUrl',
-      'lastPageUrl',
-      'pageUrls',
-      'firstPageLabel',
-      'prevPageLabel',
-      'nextPageLabel',
-      'lastPageLabel',
-      'firstPageClasses',
-      'prevPageClasses',
-      'nextPageClasses',
-      'lastPageClasses',
-      'paginationParam'
-  ));
+  return [
+      'shouldShowPagination' => $shouldShowPagination,
+      'cssClasses' => $cssClasses,
+      'hasPrevPage' => $hasPrevPage,
+      'hasNextPage' => $hasNextPage,
+      'currentPage' => $currentPage,
+      'totalPages' => $totalPages,
+      'rangePages' => $rangePages,
+      'firstPageUrl' => $firstPageUrl,
+      'prevPageUrl' => $prevPageUrl,
+      'nextPageUrl' => $nextPageUrl,
+      'lastPageUrl' => $lastPageUrl,
+      'pageUrls' => $pageUrls,
+      'firstPageLabel' => $firstPageLabel,
+      'prevPageLabel' => $prevPageLabel,
+      'nextPageLabel' => $nextPageLabel,
+      'lastPageLabel' => $lastPageLabel,
+      'firstPageClasses' => $firstPageClasses,
+      'prevPageClasses' => $prevPageClasses,
+      'nextPageClasses' => $nextPageClasses,
+      'lastPageClasses' => $lastPageClasses,
+      'paginationParam' => $paginationParam,
+      'config' => $config,
+      'page' => $page,
+      'pagination' => $pagination,
+  ];
 };

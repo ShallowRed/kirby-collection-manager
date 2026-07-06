@@ -5,8 +5,32 @@
  * Uses htmx for AJAX pagination
  */
 
+// Defensive defaults for when controller doesn't run
+$config = $config ?? [];
+$shouldShowPagination = $shouldShowPagination ?? false;
+$cssClasses = $cssClasses ?? ['nav' => 'collection-pagination', 'item' => 'collection-pagination__item', 'icon' => 'collection-pagination__icon'];
+$hasPrevPage = $hasPrevPage ?? false;
+$hasNextPage = $hasNextPage ?? false;
+$currentPage = $currentPage ?? 1;
+$totalPages = $totalPages ?? 1;
+$rangePages = $rangePages ?? [1];
+$firstPageUrl = $firstPageUrl ?? '#';
+$prevPageUrl = $prevPageUrl ?? '#';
+$nextPageUrl = $nextPageUrl ?? '#';
+$lastPageUrl = $lastPageUrl ?? '#';
+$pageUrls = $pageUrls ?? [];
+$firstPageLabel = $firstPageLabel ?? 'First page';
+$prevPageLabel = $prevPageLabel ?? 'Previous page';
+$nextPageLabel = $nextPageLabel ?? 'Next page';
+$lastPageLabel = $lastPageLabel ?? 'Last page';
+$firstPageClasses = $firstPageClasses ?? $cssClasses['item'];
+$prevPageClasses = $prevPageClasses ?? $cssClasses['item'];
+$nextPageClasses = $nextPageClasses ?? $cssClasses['item'];
+$lastPageClasses = $lastPageClasses ?? $cssClasses['item'];
+
 $htmxEnabled = $config['enableJs'] ?? true;
-$htmxTarget = '#collection-content';
+$instanceId = $config['instanceId'] ?? 'collection';
+$htmxTarget = '#' . $instanceId . '-content';
 $htmxSwap = 'innerHTML show:window:top';
 
 ?>
@@ -26,7 +50,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-first',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasPrevPage ? $firstPageUrl . (strpos($firstPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+      'hx-get' => $htmxEnabled && $hasPrevPage ? $firstPageUrl . (strpos($firstPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
       'hx-target' => $htmxEnabled && $hasPrevPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasPrevPage ? $htmxSwap : null,
       'hx-push-url' => $htmxEnabled && $hasPrevPage ? $firstPageUrl : null
@@ -46,7 +70,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-prev',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasPrevPage ? $prevPageUrl . (strpos($prevPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+      'hx-get' => $htmxEnabled && $hasPrevPage ? $prevPageUrl . (strpos($prevPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
       'hx-target' => $htmxEnabled && $hasPrevPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasPrevPage ? $htmxSwap : null,
       'hx-push-url' => $htmxEnabled && $hasPrevPage ? $prevPageUrl : null
@@ -72,7 +96,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-page-' . $pageNum,
       'tabindex' => $isCurrentPage ? '-1' : null,
       'aria-label' => $pageLabel,
-      'hx-get' => $htmxEnabled && !$isCurrentPage ? $pageUrl . (strpos($pageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+      'hx-get' => $htmxEnabled && !$isCurrentPage ? $pageUrl . (strpos($pageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
       'hx-target' => $htmxEnabled && !$isCurrentPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && !$isCurrentPage ? $htmxSwap : null,
       'hx-push-url' => $htmxEnabled && !$isCurrentPage ? $pageUrl : null
@@ -91,7 +115,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-next',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasNextPage ? $nextPageUrl . (strpos($nextPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+      'hx-get' => $htmxEnabled && $hasNextPage ? $nextPageUrl . (strpos($nextPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
       'hx-target' => $htmxEnabled && $hasNextPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasNextPage ? $htmxSwap : null,
       'hx-push-url' => $htmxEnabled && $hasNextPage ? $nextPageUrl : null
@@ -111,7 +135,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-last',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasNextPage ? $lastPageUrl . (strpos($lastPageUrl, '?') !== false ? '&' : '?') . 'htmx=1' : null,
+      'hx-get' => $htmxEnabled && $hasNextPage ? $lastPageUrl . (strpos($lastPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
       'hx-target' => $htmxEnabled && $hasNextPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasNextPage ? $htmxSwap : null,
       'hx-push-url' => $htmxEnabled && $hasNextPage ? $lastPageUrl : null

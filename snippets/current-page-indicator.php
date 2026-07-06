@@ -5,7 +5,11 @@
  * Simple presentation-focused snippet using snippet controller
  */
 
-if (!($shouldRender ?? true)) {
+// Defensive defaults
+$shouldRender = $shouldRender ?? true;
+$indicatorText = $indicatorText ?? '';
+
+if (!$shouldRender || empty($indicatorText)) {
   return;
 }
 ?>

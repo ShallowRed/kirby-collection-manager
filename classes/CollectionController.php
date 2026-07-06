@@ -53,6 +53,9 @@ class CollectionController
     }
 
     $this->config = array_merge($defaultConfig, $config);
+
+    $paginationParam = (string)($this->config['pagination']['param'] ?? 'p');
+    $this->config['instanceId'] = 'cm-' . preg_replace('/[^a-zA-Z0-9_-]/', '', $paginationParam);
   }
 
   protected function getDefaultConfig()
@@ -390,54 +393,170 @@ class CollectionController
 
   protected function generateSnippets($collection, $totalCount = null)
   {
-
     $snippets = [];
-
-        // Use totalCount if provided, otherwise fall back to collection count
+    $pagination = $collection->pagination();
     $actualTotalCount = $totalCount ?? $collection->count();
 
-        // Prepare common data for all snippets
-    $baseData = [
-      'collection' => $collection,
+    // Config params
+    $paginationParam = $this->config['pagination']['param'] ?? 'p';
+    $searchParam = $this->config['search']['param'] ?? 'q';
+    $currentSearch = get($searchParam, '');
+
+    // ========== SEARCH DATA ==========
+    $searchData = [
       'page' => $this->page,
       'config' => $this->config,
-      'pagination' => $collection->pagination(),
-      'showPagination' => $collection->pagination() ? $collection->pagination()->total() > $collection->pagination()->limit() : false,
-      'showIndicator' => true
+      'searchParam' => $searchParam,
+      'currentSearch' => $currentSearch,
+      'hasSearch' => !empty($currentSearch),
+      'placeholder' => $this->config['search']['placeholder'] ?? t('collection.search.placeholder', 'Search...'),
+      'clearUrl' => self::buildUrl($this->page, [$searchParam => ''], $paginationParam, $searchParam),
     ];
 
-        // Prepare specific data only for snippets without controllers
-    $snippetData = [
-      'items' => array_merge($baseData, [
-        'items' => $this->prepareItemsWithIndex($collection),
-        'isEmpty' => $actualTotalCount === 0,
-        'hasActiveFilters' => $this->hasActiveFilters()
-      ])
+    // ========== FILTERS DATA ==========
+    $taxonomies = $this->config['taxonomies'] ?? [];
+    $processedTaxonomies = [];
+
+    foreach ($taxonomies as $taxonomy) {
+      $param = $taxonomy['param'];
+      $field = $taxonomy['field'];
+      $label = $taxonomy['label'] ?? ucfirst($param);
+      $currentValue = get($param);
+
+      // Get unique values
+      $allItems = $this->page->children()->listed();
+      $values = $allItems->pluck($field, ',', true);
+
+      if (empty($values)) continue;
+
+      $filterOptions = [];
+      foreach ($values as $value) {
+        if (empty(trim($value))) continue;
+        $filterOptions[] = [
+          'value' => $value,
+          'label' => $value,
+          'isActive' => $currentValue === $value,
+          'url' => self::buildUrl($this->page, [$param => $value], $paginationParam, $searchParam),
+          'param' => $param
+        ];
+      }
+
+      $processedTaxonomies[] = [
+        'param' => $param,
+        'field' => $field,
+        'label' => $label,
+        'currentValue' => $currentValue,
+        'allUrl' => self::buildUrl($this->page, [$param => null], $paginationParam, $searchParam),
+        'hasActiveFilter' => !empty($currentValue),
+        'options' => $filterOptions
+      ];
+    }
+
+    $filtersData = [
+      'page' => $this->page,
+      'config' => $this->config,
+      'collection' => $collection,
+      'taxonomies' => $processedTaxonomies,
+      'hasActiveFilters' => $this->hasActiveFilters(),
+      'clearAllUrl' => $this->page->url(),
+    ];
+
+    // ========== PAGINATION DATA ==========
+    $showPagination = $pagination ? $pagination->total() > $pagination->limit() : false;
+    $shouldShowPagination = $showPagination && $pagination && !($pagination->limit() > 0 && $pagination->total() === 0);
+
+    $cssClasses = [
+      'nav' => 'collection-pagination',
+      'item' => 'collection-pagination__item',
+      'icon' => 'collection-pagination__icon'
+    ];
+
+    $paginationData = [
+      'page' => $this->page,
+      'config' => $this->config,
+      'pagination' => $pagination,
+      'showPagination' => $showPagination,
+      'shouldShowPagination' => $shouldShowPagination,
+      'cssClasses' => $cssClasses,
+    ];
+
+    if ($pagination && $shouldShowPagination) {
+      $hasPrevPage = $pagination->hasPrevPage();
+      $hasNextPage = $pagination->hasNextPage();
+      $currentPage = $pagination->page();
+      $range = $this->config['pagination']['range'] ?? 5;
+      $rangePages = $pagination->range($range);
+
+      $paginationData = array_merge($paginationData, [
+        'hasPrevPage' => $hasPrevPage,
+        'hasNextPage' => $hasNextPage,
+        'currentPage' => $currentPage,
+        'totalPages' => $pagination->pages(),
+        'rangePages' => $rangePages,
+        'firstPageUrl' => !$hasPrevPage ? '#' : self::buildUrl($this->page, [$paginationParam => null], $paginationParam),
+        'prevPageUrl' => !$hasPrevPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->prevPage() > 1 ? $pagination->prevPage() : null], $paginationParam),
+        'nextPageUrl' => !$hasNextPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->nextPage()], $paginationParam),
+        'lastPageUrl' => !$hasNextPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->lastPage()], $paginationParam),
+        'pageUrls' => array_combine($rangePages, array_map(fn($p) => self::buildUrl($this->page, [$paginationParam => $p > 1 ? $p : null], $paginationParam), $rangePages)),
+        'firstPageLabel' => t('collection.pagination.first', 'Go to first page'),
+        'prevPageLabel' => t('collection.pagination.prev', 'Go to previous page'),
+        'nextPageLabel' => t('collection.pagination.next', 'Go to next page'),
+        'lastPageLabel' => t('collection.pagination.last', 'Go to last page'),
+        'firstPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-first' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
+        'prevPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
+        'nextPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
+        'lastPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-last' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
+        'paginationParam' => $paginationParam,
+      ]);
+    }
+
+    // ========== INDICATOR DATA ==========
+    $shouldRenderIndicator = $pagination && $pagination->pages() > 1 && $pagination->total() > 0;
+    $indicatorFormat = t('collection.pagination.indicator', 'Page {current} of {total}');
+
+    $indicatorData = [
+      'config' => $this->config,
+      'pagination' => $pagination,
+      'shouldRender' => $shouldRenderIndicator,
+      'indicatorText' => $shouldRenderIndicator ? str_replace(['{current}', '{total}'], [$pagination->page(), $pagination->pages()], $indicatorFormat) : '',
+      'currentPage' => $pagination ? $pagination->page() : 1,
+      'totalPages' => $pagination ? $pagination->pages() : 1,
+    ];
+
+    // ========== ITEMS DATA ==========
+    $itemsData = [
+      'page' => $this->page,
+      'config' => $this->config,
+      'collection' => $collection,
+      'items' => $this->prepareItemsWithIndex($collection),
+      'isEmpty' => $actualTotalCount === 0,
+      'hasActiveFilters' => $this->hasActiveFilters(),
+    ];
+
+    // ========== RENDER SNIPPETS ==========
+    $snippetDataMap = [
+      'search' => $searchData,
+      'filters' => $filtersData,
+      'pagination' => $paginationData,
+      'indicator' => $indicatorData,
+      'items' => $itemsData,
     ];
 
     foreach ($this->config['snippets'] as $key => $snippetName) {
       // Skip disabled features
-      if ($key === 'search' && !($this->config['enableSearch'] ?? true)) {
-        $snippets[$key] = '';
-        continue;
-      }
-      if ($key === 'filters' && !($this->config['enableFilters'] ?? true)) {
-        $snippets[$key] = '';
-        continue;
-      }
-      if ($key === 'indicator' && !($this->config['enableIndicator'] ?? true)) {
-        $snippets[$key] = '';
-        continue;
-      }
-      if ($key === 'pagination' && !($this->config['enablePagination'] ?? true)) {
+      $featureFlags = [
+        'search' => 'enableSearch',
+        'filters' => 'enableFilters',
+        'indicator' => 'enableIndicator',
+        'pagination' => 'enablePagination',
+      ];
+
+      if (isset($featureFlags[$key]) && !($this->config[$featureFlags[$key]] ?? true)) {
         $snippets[$key] = '';
         continue;
       }
 
-      // Items snippet doesn't have a controller, use prepared data
-      // All other snippets have controllers and use base data
-      $data = $key === 'items' ? $snippetData[$key] : $baseData;
-
+      $data = $snippetDataMap[$key] ?? ['config' => $this->config, 'page' => $this->page];
       $snippets[$key] = snippet($snippetName, $data, true);
     }
 
@@ -446,15 +565,8 @@ class CollectionController
 
   protected function prepareItemsWithIndex($collection)
   {
-    $indexed = [];
-    $index = 0;
-    foreach ($collection as $item) {
-      $indexed[] = (object) [
-        'page' => $item,
-        'orderIndex' => $index++
-      ];
-    }
-    return $indexed;
+    // Return pages directly as an array of Page objects
+    return $collection->values();
   }
 
   protected function getActiveFilters()
@@ -496,8 +608,13 @@ class CollectionController
 
   protected function isAjaxRequest()
   {
-    // Check for htmx request
-    if (get('htmx') || isset($_SERVER['HTTP_HX_REQUEST'])) {
+    // Check for htmx request, scoped to this instance so that several
+    // collection managers can live on the same page
+    $htmxParam = get('htmx');
+    if ($htmxParam) {
+      return $htmxParam === ($this->config['instanceId'] ?? '') ? 'htmx' : false;
+    }
+    if (isset($_SERVER['HTTP_HX_REQUEST'])) {
       return 'htmx';
     }
 
@@ -527,6 +644,10 @@ class CollectionController
 
   protected function handleHtmxRequest($collection, $snippets)
   {
+    while (ob_get_level() > 0) {
+      ob_end_clean();
+    }
+
     header('Content-Type: text/html; charset=utf-8');
 
     // Return the HTML content that htmx will swap

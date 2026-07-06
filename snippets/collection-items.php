@@ -3,14 +3,25 @@
  * Collection Manager - Items List Snippet
  * Simple presentation-focused snippet
  */
+
+// Defensive defaults
+$config = $config ?? [];
+$items = $items ?? [];
+$isEmpty = $isEmpty ?? empty($items);
+$hasActiveFilters = $hasActiveFilters ?? false;
 ?>
 
 <?php if (!$isEmpty): ?>
   <div class="collection-items__list" data-testid="collection-items">
-    <?php foreach ($items as $itemData): ?>
+    <?php foreach ($items as $index => $itemData): ?>
+      <?php 
+        // Handle both old format (object with page property) and new format (direct Page objects)
+        $page = is_object($itemData) && property_exists($itemData, 'page') ? $itemData->page : $itemData;
+        $orderIndex = is_object($itemData) && property_exists($itemData, 'orderIndex') ? $itemData->orderIndex : $index;
+      ?>
       <?php echo snippet($config['snippets']['item'] ?? 'collection-item', [
-        'item' => $itemData->page,
-        'orderIndex' => $itemData->orderIndex,
+        'item' => $page,
+        'orderIndex' => $orderIndex,
         'config' => $config
       ]) ?>
     <?php endforeach ?>

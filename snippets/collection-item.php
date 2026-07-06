@@ -5,7 +5,20 @@
  * Simple presentation-focused snippet using snippet controller
  */
 
-if (!($shouldRender ?? true)) {
+// Defensive defaults
+$shouldRender = $shouldRender ?? true;
+$item = $item ?? null;
+$orderIndex = $orderIndex ?? 0;
+$config = $config ?? [];
+$hasImage = $hasImage ?? false;
+$firstImage = $firstImage ?? null;
+$hasText = $hasText ?? false;
+$hasDate = $hasDate ?? false;
+$hasCategory = $hasCategory ?? false;
+$hasTags = $hasTags ?? false;
+$processedTags = $processedTags ?? [];
+
+if (!$shouldRender || !$item) {
   return;
 }
 ?>

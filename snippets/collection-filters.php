@@ -5,10 +5,19 @@
  * Uses htmx for AJAX filtering
  */
 
+// Defensive defaults for when controller doesn't run
+$config = $config ?? [];
+$taxonomies = $taxonomies ?? [];
+
 $htmxEnabled = $config['enableJs'] ?? true;
-$htmxTarget = '#collection-content';
+$instanceId = $config['instanceId'] ?? 'collection';
+$htmxTarget = '#' . $instanceId . '-content';
 $htmxSwap = 'innerHTML show:window:top';
 
+// If no taxonomies, don't render anything
+if (empty($taxonomies)) {
+    return;
+}
 ?>
 
 <div class="collection-filters" data-testid="collection-filters">
@@ -21,7 +30,7 @@ $htmxSwap = 'innerHTML show:window:top';
         <!-- All/Clear option -->
         <?php
         $allUrl = $taxonomy['allUrl'];
-        $allHtmxUrl = $allUrl . (strpos($allUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+        $allHtmxUrl = $allUrl . (strpos($allUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
         ?>
         <a <?php echo attr(array_filter([
           'href' => $allUrl,
@@ -41,7 +50,7 @@ $htmxSwap = 'innerHTML show:window:top';
         <?php foreach ($taxonomy['options'] as $option) : ?>
           <?php
           $optionUrl = $option['url'];
-          $optionHtmxUrl = $optionUrl . (strpos($optionUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+          $optionHtmxUrl = $optionUrl . (strpos($optionUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
           ?>
           <a <?php echo attr(array_filter([
             'href' => $optionUrl,
@@ -63,7 +72,7 @@ $htmxSwap = 'innerHTML show:window:top';
 
   <?php if ($hasActiveFilters) : ?>
     <?php
-    $clearAllHtmxUrl = $clearAllUrl . (strpos($clearAllUrl, '?') !== false ? '&' : '?') . 'htmx=1';
+    $clearAllHtmxUrl = $clearAllUrl . (strpos($clearAllUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
     ?>
     <div class="collection-filters__actions">
       <a <?php echo attr(array_filter([
