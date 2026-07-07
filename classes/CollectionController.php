@@ -725,7 +725,7 @@ class CollectionController
 
         // Preserve taxonomy filters - get all current GET parameters except pagination
     foreach ($_GET as $key => $value) {
-      if ($key !== $paginationParam && $key !== 'json' && $value) {
+      if ($key !== $paginationParam && $key !== 'json' && $key !== 'htmx' && $value) {
         $currentParams[$key] = $value;
       }
     }
