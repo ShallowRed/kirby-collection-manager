@@ -14,6 +14,11 @@ $instanceId = $config['instanceId'] ?? 'collection';
 <script>
   if (!window.collectionManagerHtmxLoaded) {
     window.collectionManagerHtmxLoaded = true;
+    // Refetch on history navigation so back/forward always reflect the URL
+    var cmHtmxMeta = document.createElement('meta');
+    cmHtmxMeta.name = 'htmx-config';
+    cmHtmxMeta.content = '{"historyCacheSize": 0, "refreshOnHistoryMiss": true}';
+    document.head.appendChild(cmHtmxMeta);
     var cmHtmxScript = document.createElement('script');
     cmHtmxScript.src = <?= json_encode(kirby()->plugin('shallowred/collection-manager')->asset('htmx.min.js')->url()) ?>;
     document.head.appendChild(cmHtmxScript);
@@ -42,12 +47,15 @@ $instanceId = $config['instanceId'] ?? 'collection';
       </div>
     <?php endif ?>
 
+    <?php if ($config['enableSorting'] ?? false) : ?>
+      <!-- Sorting -->
+      <div <?php echo attr(['class' => trim($config['containers']['sorting'] ?? '', '.')]) ?>>
+      <?php echo $snippets['sorting'] ?? '' ?>
+      </div>
+    <?php endif ?>
+
     <!-- Collection Items -->
-    <div <?php echo attr([
-    'class' => trim($config['containers']['items'] ?? '', '.'),
-    'data-replacementtop' => 'true',
-    'data-offset' => '100'
-  ]) ?>>
+    <div <?php echo attr(['class' => trim($config['containers']['items'] ?? '', '.')]) ?>>
       <?php echo $snippets['items'] ?? '' ?>
     </div>
 
@@ -62,7 +70,7 @@ $instanceId = $config['instanceId'] ?? 'collection';
   <?php if (($config['enableJs'] ?? true) && ($config['useIsotope'] ?? false)) : ?>
     <!-- Isotope integration (optional) -->
     <script type="module">
-      import { IsotopeManager } from '/site/plugins/kirby-collection-manager/lib/isotope.js';
+      import { IsotopeManager } from <?= json_encode(kirby()->plugin('shallowred/collection-manager')->asset('isotope.js')->url()) ?>;
 
       const isotope = new IsotopeManager({
         container: '.collection-items__list',

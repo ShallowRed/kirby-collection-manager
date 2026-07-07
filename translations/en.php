@@ -32,6 +32,10 @@ return [
     'collection.empty.filtered'       => 'Try adjusting your search or filter criteria.',
     'collection.empty.default'        => 'There are no items to display yet.',
 
+    // Sorting
+    'collection.sorting.label'        => 'Sort by',
+    'collection.sorting.submit'       => 'Apply',
+
     // Item
     'collection.item.readmore'        => 'Read more',
 ];

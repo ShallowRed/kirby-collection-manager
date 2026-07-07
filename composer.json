@@ -1,7 +1,6 @@
 {
     "name": "shallowred/kirby-collection-manager",
     "description": "A powerful Kirby CMS plugin for managing collections with AJAX pagination, search, filtering, and sorting. Provides both complete out-of-the-box solution and flexible components for custom implementations.",
-    "version": "1.0.0",
     "license": "MIT",
     "type": "kirby-plugin",
     "keywords": [

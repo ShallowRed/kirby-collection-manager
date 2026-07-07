@@ -32,6 +32,10 @@ return [
     'collection.empty.filtered'       => 'Essayez d\'ajuster vos critères de recherche ou de filtrage.',
     'collection.empty.default'        => 'Il n\'y a pas encore d\'éléments à afficher.',
 
+    // Sorting
+    'collection.sorting.label'        => 'Trier par',
+    'collection.sorting.submit'       => 'Appliquer',
+
     // Item
     'collection.item.readmore'        => 'Lire la suite',
 ];

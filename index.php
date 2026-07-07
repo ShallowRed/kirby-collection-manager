@@ -11,11 +11,6 @@ Kirby::plugin('shallowred/collection-manager', [
   ],
 
   'options' => [
-    // Debug mode - enable for development
-    'debug' => false,
-    // Events/hooks - enable to use hooks
-    'events' => true,
-    // Pagination defaults
     'pagination' => [
       'range' => 10,
       'cssClasses' => [
@@ -27,31 +22,26 @@ Kirby::plugin('shallowred/collection-manager', [
   ],
 
   'snippets' => [
-    'collection-pagination' => __DIR__ . '/snippets/collection-pagination.php',
-    'collection-pagination.controller' => __DIR__ . '/controllers/collection-pagination.php',
-    'current-page-indicator' => __DIR__ . '/snippets/current-page-indicator.php',
-    'current-page-indicator.controller' => __DIR__ . '/controllers/current-page-indicator.php',
+    'collection-manager' => __DIR__ . '/snippets/collection-manager.php',
     'collection-items' => __DIR__ . '/snippets/collection-items.php',
     'collection-item' => __DIR__ . '/snippets/collection-item.php',
     'collection-item.controller' => __DIR__ . '/controllers/collection-item.php',
+    'collection-pagination' => __DIR__ . '/snippets/collection-pagination.php',
+    'current-page-indicator' => __DIR__ . '/snippets/current-page-indicator.php',
     'collection-filters' => __DIR__ . '/snippets/collection-filters.php',
-    'collection-filters.controller' => __DIR__ . '/controllers/collection-filters.php',
     'collection-search' => __DIR__ . '/snippets/collection-search.php',
-    'collection-search.controller' => __DIR__ . '/controllers/collection-search.php',
-    'collection-manager' => __DIR__ . '/snippets/collection-manager.php',
+    'collection-sorting' => __DIR__ . '/snippets/collection-sorting.php',
   ],
 
   'pageMethods' => [
-    'collectionManager' => function ($config = []) {
-      $controller = new CollectionController($this, kirby(), $config);
-      return $controller->handle();
+    'collectionManager' => function (array $config = []) {
+      return CollectionController::handle($this, $config);
     }
   ],
 
   'siteMethods' => [
-    'collectionManager' => function ($page, $config = []) {
-      $controller = new CollectionController($page, $this, $config);
-      return $controller->handle();
+    'collectionManager' => function ($page, array $config = []) {
+      return CollectionController::handle($page, $config);
     }
   ]
 

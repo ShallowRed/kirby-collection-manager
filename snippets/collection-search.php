@@ -10,7 +10,10 @@ $config = $config ?? [];
 $page = $page ?? page();
 $searchParam = $searchParam ?? 'q';
 $currentSearch = $currentSearch ?? get('q', '');
+$hasSearch = $hasSearch ?? ($currentSearch !== '');
 $placeholder = $placeholder ?? t('collection.search.placeholder', 'Search...');
+$clearUrl = $clearUrl ?? $page->url();
+$preservedParams = $preservedParams ?? [];
 
 $htmxEnabled = $config['enableJs'] ?? true;
 $instanceId = $config['instanceId'] ?? 'collection';
@@ -28,12 +31,15 @@ $searchUrl = $page->url();
     'hx-get' => $htmxEnabled ? $searchUrl : null,
     'hx-target' => $htmxEnabled ? $htmxTarget : null,
     'hx-swap' => $htmxEnabled ? $htmxSwap : null,
-    'hx-push-url' => $htmxEnabled ? 'true' : null,
-    'hx-include' => $htmxEnabled ? '[name]' : null
+    'hx-push-url' => $htmxEnabled ? 'true' : null
   ])) ?>>
-    <?php if ($htmxEnabled) : ?>
-    <input type="hidden" name="htmx" value="<?= esc($instanceId) ?>">
-    <?php endif ?>
+    <?php foreach ($preservedParams as $param => $value) : ?>
+    <input <?php echo attr([
+      'type' => 'hidden',
+      'name' => $param,
+      'value' => $value
+    ]) ?>>
+    <?php endforeach ?>
     <div class="collection-search__field">
       <label <?php echo attr([
         'for' => 'collection-search-input',
@@ -47,6 +53,7 @@ $searchUrl = $page->url();
         'name' => $searchParam,
         'value' => $currentSearch,
         'placeholder' => $placeholder,
+        'autocomplete' => 'off',
         'class' => 'collection-search__input',
         'data-testid' => 'collection-search-input'
       ]) ?>>
@@ -70,10 +77,10 @@ $searchUrl = $page->url();
         'class' => 'collection-search__clear',
         'title' => t('collection.search.clear', 'Clear search'),
         'data-testid' => 'collection-search-clear',
-        'hx-get' => $htmxEnabled ? $clearUrl . (strpos($clearUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+        'hx-get' => $htmxEnabled ? $clearUrl : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,
-        'hx-push-url' => $htmxEnabled ? $clearUrl : null
+        'hx-push-url' => $htmxEnabled ? 'true' : null
       ])) ?>>
         <span class="collection-search__clear-text"><?= t('collection.search.clear.button', 'Clear') ?></span>
         <span <?php echo attr([

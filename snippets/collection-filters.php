@@ -28,40 +28,34 @@ if (empty($taxonomies)) {
 
       <div class="collection-filters__options">
         <!-- All/Clear option -->
-        <?php
-        $allUrl = $taxonomy['allUrl'];
-        $allHtmxUrl = $allUrl . (strpos($allUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
-        ?>
         <a <?php echo attr(array_filter([
-          'href' => $allUrl,
+          'href' => $taxonomy['allUrl'],
           'class' => 'collection-filter' . (!$taxonomy['hasActiveFilter'] ? ' collection-filter--active' : ''),
           'data-param' => $taxonomy['param'],
           'data-value' => '',
           'data-testid' => 'collection-filter-' . $taxonomy['param'] . '-all',
-          'hx-get' => $htmxEnabled ? $allHtmxUrl : null,
+          'hx-get' => $htmxEnabled ? $taxonomy['allUrl'] : null,
           'hx-target' => $htmxEnabled ? $htmxTarget : null,
           'hx-swap' => $htmxEnabled ? $htmxSwap : null,
-          'hx-push-url' => $htmxEnabled ? $allUrl : null
+          'hx-push-url' => $htmxEnabled ? 'true' : null
         ])) ?>>
           <?= Str::template(t('collection.filters.all', 'All {label}'), ['label' => esc($taxonomy['label'], 'html')]) ?>
         </a>
 
         <!-- Individual filter options -->
         <?php foreach ($taxonomy['options'] as $option) : ?>
-          <?php
-          $optionUrl = $option['url'];
-          $optionHtmxUrl = $optionUrl . (strpos($optionUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
-          ?>
           <a <?php echo attr(array_filter([
-            'href' => $optionUrl,
-            'class' => 'collection-filter' . ($option['isActive'] ? ' collection-filter--active' : ''),
+            'href' => $option['url'],
+            'class' => 'collection-filter'
+              . ($option['isActive'] ? ' collection-filter--active' : '')
+              . (($taxonomy['multiple'] ?? false) ? ' collection-filter--multiple' : ''),
             'data-param' => $option['param'],
             'data-value' => $option['value'],
             'data-testid' => 'collection-filter-' . $option['param'] . '-' . Str::slug($option['value']),
-            'hx-get' => $htmxEnabled ? $optionHtmxUrl : null,
+            'hx-get' => $htmxEnabled ? $option['url'] : null,
             'hx-target' => $htmxEnabled ? $htmxTarget : null,
             'hx-swap' => $htmxEnabled ? $htmxSwap : null,
-            'hx-push-url' => $htmxEnabled ? $optionUrl : null
+            'hx-push-url' => $htmxEnabled ? 'true' : null
           ])) ?>>
             <?php echo esc($option['label'], 'html') ?>
           </a>
@@ -71,18 +65,15 @@ if (empty($taxonomies)) {
   <?php endforeach ?>
 
   <?php if ($hasActiveFilters) : ?>
-    <?php
-    $clearAllHtmxUrl = $clearAllUrl . (strpos($clearAllUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId);
-    ?>
     <div class="collection-filters__actions">
       <a <?php echo attr(array_filter([
         'href' => $clearAllUrl,
         'class' => 'collection-filters__clear',
         'data-testid' => 'collection-filters-clear',
-        'hx-get' => $htmxEnabled ? $clearAllHtmxUrl : null,
+        'hx-get' => $htmxEnabled ? $clearAllUrl : null,
         'hx-target' => $htmxEnabled ? $htmxTarget : null,
         'hx-swap' => $htmxEnabled ? $htmxSwap : null,
-        'hx-push-url' => $htmxEnabled ? $clearAllUrl : null
+        'hx-push-url' => $htmxEnabled ? 'true' : null
       ])) ?>>
         <?= t('collection.filters.clear', 'Clear all filters') ?>
       </a>

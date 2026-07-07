@@ -23,7 +23,7 @@ if (!$shouldRender || !$item) {
 }
 ?>
 
-<article<?php echo attr([
+<article <?php echo attr([
   'class' => 'collection-item',
   'data-id' => $item->id(),
   'data-order' => $orderIndex,
@@ -32,7 +32,7 @@ if (!$shouldRender || !$item) {
 
   <?php if ($hasImage) : ?>
     <div class="collection-item__image">
-      <img<?php echo attr([
+      <img <?php echo attr([
         'src' => $firstImage->crop(300, 200)->url(),
         'alt' => $firstImage->alt()->or($item->title())->value(),
         'loading' => 'lazy'
@@ -55,11 +55,11 @@ if (!$shouldRender || !$item) {
 
     <div class="collection-item__meta">
       <?php if ($hasDate) : ?>
-        <time<?php echo attr([
+        <time <?php echo attr([
           'class' => 'collection-item__date',
-          'datetime' => $item->date('c')
+          'datetime' => $item->date()->toDate('c')
         ]) ?>>
-          <?php echo esc($item->date('M j, Y'), 'html') ?>
+          <?php echo esc($item->date()->toDate('M j, Y'), 'html') ?>
         </time>
       <?php endif ?>
 

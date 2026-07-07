@@ -2,38 +2,19 @@
 
 namespace KirbyCollectionManager;
 
-use KirbyCollectionManager\Config\CollectionConfig;
-use KirbyCollectionManager\Config\PaginationConfig;
-use KirbyCollectionManager\Config\SearchConfig;
-use KirbyCollectionManager\Config\FilterConfig;
-use KirbyCollectionManager\Exception\CollectionException;
-use KirbyCollectionManager\Exception\InvalidConfigurationException;
-use KirbyCollectionManager\Exception\CollectionNotFoundException;
+use Kirby\Toolkit\Str;
 use KirbyCollectionManager\Query\CollectionQuery;
 use KirbyCollectionManager\Url\UrlBuilder;
-use KirbyCollectionManager\Response\ResponseFactory;
-use KirbyCollectionManager\Response\RequestDetector;
-use KirbyCollectionManager\Render\SnippetRenderer;
 
 class CollectionController
 {
+  public const SEARCH_MAX_LENGTH = 100;
+
   protected $config;
   protected $page;
   protected $site;
 
-  /**
-   * Validated configuration object (optional, for new usage pattern)
-   */
-  protected ?CollectionConfig $validatedConfig = null;
-
-  /**
-   * URL builder instance
-   */
   protected ?UrlBuilder $urlBuilder = null;
-
-  /**
-   * Collection query instance
-   */
   protected ?CollectionQuery $query = null;
 
   public function __construct($page, $site, $config = [])
@@ -41,15 +22,13 @@ class CollectionController
     $this->page = $page;
     $this->site = $site;
 
-        // Get default configuration
     $defaultConfig = $this->getDefaultConfig();
 
-        // Handle snippets merging specially
-    if (isset($config['snippets'])) {
-      $config['snippets'] = array_merge(
-          $defaultConfig['snippets'],
-          $config['snippets']
-      );
+    // Merge nested option groups so partial overrides keep the defaults
+    foreach (['snippets', 'containers', 'search', 'pagination', 'sorting'] as $group) {
+      if (isset($config[$group]) && is_array($config[$group])) {
+        $config[$group] = array_merge($defaultConfig[$group], $config[$group]);
+      }
     }
 
     $this->config = array_merge($defaultConfig, $config);
@@ -65,7 +44,7 @@ class CollectionController
       'collectionMethod' => 'listed',
       'search' => [
         'fields' => ['title', 'text'],
-        'placeholder' => 'Search...',
+        'placeholder' => null,
         'param' => 'q'
       ],
       'pagination' => [
@@ -75,11 +54,14 @@ class CollectionController
       ],
       'sorting' => [
         'default' => 'date',
-        'direction' => 'desc'
+        'direction' => 'desc',
+        'options' => [],
+        'param' => 'sort'
       ],
       'taxonomies' => [],
       'enableSearch' => true,
       'enableFilters' => true,
+      'enableSorting' => false,
       'enableIndicator' => true,
       'enablePagination' => true,
       'enableJs' => true,
@@ -89,6 +71,7 @@ class CollectionController
         'pagination' => '.collection-pagination',
         'filters' => '.collection-filters',
         'search' => '.collection-search',
+        'sorting' => '.collection-sorting',
         'indicator' => '.current-page-indicator'
       ],
       'snippets' => [
@@ -98,41 +81,15 @@ class CollectionController
         'pagination' => 'collection-pagination',
         'filters' => 'collection-filters',
         'search' => 'collection-search',
+        'sorting' => 'collection-sorting',
         'indicator' => 'current-page-indicator'
-      ],
-      'replacements' => [
-        [
-          'containerSelector' => '.collection-items__list',
-          'itemSelector' => '.collection-item',
-          'snippet' => 'items'
-        ],
-        [
-          'containerSelector' => '.collection-search',
-          'outerHTML' => true,
-          'snippet' => 'search'
-        ],
-        [
-          'containerSelector' => '.collection-pagination',
-          'outerHTML' => true,
-          'snippet' => 'pagination'
-        ],
-        [
-          'containerSelector' => '.collection-filters',
-          'outerHTML' => true,
-          'snippet' => 'filters'
-        ],
-        [
-          'containerSelector' => '.current-page-indicator',
-          'outerHTML' => true,
-          'snippet' => 'indicator'
-        ]
       ]
     ];
   }
 
-    /**
-     * Static factory method to create and handle a collection request
-     */
+  /**
+   * Static factory method to create and handle a collection request
+   */
   public static function handle($page, $config = [])
   {
     $site = site();
@@ -140,182 +97,54 @@ class CollectionController
     return $controller->process();
   }
 
-  /**
-   * Get the URL builder instance
-   */
-  public function getUrlBuilder(): UrlBuilder
+  public function process()
   {
-    if ($this->urlBuilder === null) {
-      $this->urlBuilder = new UrlBuilder(
-        $this->page,
-        $this->config['pagination']['param'] ?? 'p',
-        $this->config['search']['param'] ?? 'q'
-      );
-    }
-    return $this->urlBuilder;
-  }
-
-  /**
-   * Process using the new Query Pipeline architecture
-   *
-   * This method uses the new CollectionQuery, UrlBuilder, and ResponseFactory
-   * classes for improved maintainability and testability.
-   *
-   * @return array Template data
-   */
-  public function processWithQuery(): array
-  {
-    // Build query pipeline
-    $this->query = $this->buildQueryPipeline();
-
-    // Get the processed collection
-    $collection = $this->query->get();
-
-    // Create renderer with URL builder
-    $renderer = new SnippetRenderer(
-      $this->config,
-      $this->page,
-      $this->getUrlBuilder()
-    );
-
-    // Generate snippets
-    $snippets = $renderer->renderAll($collection, $this->query);
-
-    // Handle AJAX requests using ResponseFactory
-    if (ResponseFactory::isAjaxRequest()) {
-      ResponseFactory::handleIfAjax($collection, $snippets, $this->config);
-      // Won't reach here - handlers call exit
+    if ($this->config['enableJs'] ?? true) {
+      // Fragment and full-page responses share the same URL
+      header('Vary: HX-Target');
     }
 
-    // Return template data
-    return $this->buildTemplateData($collection, $snippets);
-  }
+    $this->query = CollectionQuery::from($this->getBaseCollection());
 
-  /**
-   * Build the collection query pipeline
-   */
-  protected function buildQueryPipeline(): CollectionQuery
-  {
-    $baseCollection = $this->getBaseCollection();
-    $query = CollectionQuery::from($baseCollection);
-
-    // Apply search
-    $searchParam = $this->config['search']['param'] ?? 'q';
-    if ($this->config['enableSearch'] ?? true) {
-      $searchTerm = get($searchParam);
-      if ($searchTerm) {
-        $query->search($searchTerm, $this->config['search']['fields'] ?? ['title', 'text']);
-      }
+    if (($this->config['enableSearch'] ?? true) && ($search = $this->currentSearch()) !== '') {
+      $this->query->search($search, $this->config['search']['fields'] ?? ['title', 'text']);
     }
 
-    // Apply taxonomy filters
     if ($this->config['enableFilters'] ?? true) {
       foreach ($this->config['taxonomies'] ?? [] as $taxonomy) {
-        $value = get($taxonomy['param']) ?? param($taxonomy['param']);
-        if ($value) {
-          $query->filter($taxonomy['field'], $value);
+        $values = $this->currentFilterValues($taxonomy['param']);
+        if ($values !== []) {
+          $this->query->filter($taxonomy['field'], $values);
         }
       }
     }
 
-    // Sort
-    $sorting = $this->config['sorting'] ?? [];
-    $query->sort(
-      $sorting['default'] ?? 'date',
-      $sorting['direction'] ?? 'desc'
-    );
+    [$sortField, $sortDirection] = $this->currentSorting();
+    $this->query->sort($sortField, $sortDirection);
 
-    // Paginate
     if ($this->config['enablePagination'] ?? true) {
-      $pagination = $this->config['pagination'] ?? [];
-      $query->paginate(
-        $pagination['limit'] ?? 10,
-        $pagination['param'] ?? 'p'
+      $this->query->paginate(
+          (int)($this->config['pagination']['limit'] ?? 10),
+          (string)($this->config['pagination']['param'] ?? 'p')
       );
     }
 
-    return $query;
-  }
+    $collection = $this->query->get();
+    $snippets = $this->generateSnippets($collection, $this->query->getTotalCount());
 
-  /**
-   * Build the template data array
-   */
-  protected function buildTemplateData($collection, array $snippets): array
-  {
+    if ($this->isHtmxRequest()) {
+      return $this->renderHtmxFragment($snippets);
+    }
+
     $returnData = [
       'collection' => $collection,
-      'config' => $this->config,
-      'snippets' => $snippets,
-      'query' => $this->query,
-      'urlBuilder' => $this->getUrlBuilder(),
-      'hasActiveFilters' => $this->query?->hasActiveFiltersOrSearch() ?? $this->hasActiveFilters(),
-    ];
-
-    // Add pagination info
-    if ($this->config['enablePagination'] ?? true) {
-      $pagination = $collection->pagination();
-      if ($pagination) {
-        $returnData['currentPage'] = $pagination->page();
-        $returnData['totalPages'] = $pagination->pages();
-      }
-    }
-
-    return array_merge($snippets, $returnData);
-  }
-
-  /**
-   * Active processing path, used by CollectionController::handle().
-   *
-   * Note: processWithQuery() is an unfinished alternative pipeline that is not
-   * called anywhere yet and does NOT scope htmx requests per instance; port the
-   * instanceId handling from this method before switching over.
-   */
-  public function process()
-  {
-        // Get base collection
-    $collection = $this->getBaseCollection();
-
-        // Apply search
-    $searchParam = $this->config['search']['param'] ?? 'q';
-    if ($this->config['enableSearch'] && ($search = get($searchParam))) {
-      $searchFields = $this->config['search']['fields'] ?? ['title', 'text'];
-      $searchString = is_array($searchFields) ? implode('|', $searchFields) : $searchFields;
-      $collection = $collection->search($search, $searchString);
-    }
-
-        // Apply taxonomy filters
-    if ($this->config['enableFilters']) {
-      $collection = $this->applyTaxonomyFilters($collection);
-    }
-
-        // Sort collection
-    $collection = $this->sortCollection($collection);
-
-        // Store the total count before pagination for empty result handling
-    $totalCount = $collection->count();
-
-        // Paginate the collection first
-    $paginatedCollection = $this->paginateCollection($collection);
-
-        // Generate HTML snippets
-    $snippets = $this->generateSnippets($paginatedCollection, $totalCount);
-
-        // Handle AJAX requests (htmx or legacy JSON)
-    $ajaxType = $this->isAjaxRequest();
-    if ($ajaxType) {
-      return $this->handleAjaxRequest($paginatedCollection, $snippets);
-    }
-
-        // Return template data
-    $returnData = [
-      'collection' => $paginatedCollection,
       'config' => $this->config,
       'snippets' => $snippets
     ];
 
-    // Add currentPage only if pagination is enabled
-    if ($this->config['enablePagination'] ?? true) {
-      $returnData['currentPage'] = $paginatedCollection->pagination()->page();
+    if (($this->config['enablePagination'] ?? true) && $pagination = $collection->pagination()) {
+      $returnData['currentPage'] = $pagination->page();
+      $returnData['totalPages'] = $pagination->pages();
     }
 
     return array_merge($snippets, $returnData);
@@ -325,84 +154,154 @@ class CollectionController
   {
     $collection = $this->config['collection'];
 
-        // If collection is already a Collection object, return it directly
+    // If collection is already a Collection object, return it directly
     if (is_object($collection) && method_exists($collection, 'count')) {
       return $collection;
     }
 
-        // If collection is a string path, resolve it
+    // If collection is a string path, resolve it
     $method = $this->config['collectionMethod'];
 
     if ($collection === 'children') {
       return $this->page->children()->$method();
     }
 
-        // Support for custom collection paths
+    // Support for custom collection paths
     return $this->page->find($collection)->children()->$method();
   }
 
-  protected function applyTaxonomyFilters($collection)
+  /**
+   * Current search term, trimmed and capped
+   */
+  protected function currentSearch(): string
   {
-    foreach ($this->config['taxonomies'] as $taxonomy) {
-      $param = get($taxonomy['param']) ?? param($taxonomy['param']);
-      if ($param) {
-        $collection = $collection->filterBy($taxonomy['field'], $param);
-      }
-    }
-    return $collection;
+    $searchParam = $this->config['search']['param'] ?? 'q';
+    $search = trim((string) get($searchParam, ''));
+
+    return Str::substr($search, 0, static::SEARCH_MAX_LENGTH);
   }
 
-  protected function sortCollection($collection)
+  /**
+   * Current values for a filter param (comma-separated for multi-select)
+   */
+  protected function currentFilterValues(string $param): array
+  {
+    $raw = (string) (get($param) ?? param($param) ?? '');
+
+    return array_values(array_filter(array_map('trim', explode(',', $raw)), fn ($value) => $value !== ''));
+  }
+
+  /**
+   * Resolve the active sort field and direction.
+   *
+   * The sort param is only honored when sorting options are configured and
+   * the requested key is part of them (whitelist). Option keys may embed a
+   * direction with the "field:direction" syntax.
+   */
+  protected function currentSorting(): array
   {
     $sorting = $this->config['sorting'] ?? [];
-    $field = $sorting['default'] ?? 'date';
-    $direction = $sorting['direction'] ?? 'desc';
+    $key = null;
 
-    return $collection->sortBy($field, $direction);
-  }
-
-  protected function addOrderIndices($collection)
-  {
-        // Create indexed collection for proper ordering
-    $indexed = [];
-    $index = 0;
-
-    foreach ($collection as $item) {
-      $indexed[] = (object) [
-        'page' => $item,
-        'orderIndex' => $index++
-      ];
+    $options = $sorting['options'] ?? [];
+    if (($this->config['enableSorting'] ?? false) && $options !== []) {
+      $requested = (string) get($sorting['param'] ?? 'sort', '');
+      if ($requested !== '' && array_key_exists($requested, $options)) {
+        $key = $requested;
+      }
     }
 
-    return $indexed;
-  }
+    $key ??= (string)($sorting['default'] ?? 'date');
 
-  protected function paginateCollection($collection)
-  {
-    // If pagination is disabled, return the collection as-is
-    if (!($this->config['enablePagination'] ?? true)) {
-      return $collection;
+    $field = $key;
+    $direction = strtolower((string)($sorting['direction'] ?? 'desc'));
+
+    if (str_contains($key, ':')) {
+      [$field, $direction] = explode(':', $key, 2);
     }
 
-    $pagination = $this->config['pagination'] ?? [];
+    if (!in_array($direction, ['asc', 'desc'], true)) {
+      $direction = 'desc';
+    }
 
-    return $collection->paginate([
-      'limit' => $pagination['limit'] ?? 10,
-      'method' => 'query',
-      'variable' => $pagination['param'] ?? 'p'
-    ]);
+    return [$field, $direction];
+  }
+
+  /**
+   * The current sort option key when it differs from the default
+   */
+  protected function currentSortKey(): ?string
+  {
+    $sorting = $this->config['sorting'] ?? [];
+    $options = $sorting['options'] ?? [];
+
+    if (!($this->config['enableSorting'] ?? false) || $options === []) {
+      return null;
+    }
+
+    $requested = (string) get($sorting['param'] ?? 'sort', '');
+
+    return $requested !== '' && array_key_exists($requested, $options) ? $requested : null;
+  }
+
+  /**
+   * All params owned by this instance (used to preserve state across links)
+   */
+  protected function knownParams(): array
+  {
+    $params = [
+      $this->config['pagination']['param'] ?? 'p',
+      $this->config['search']['param'] ?? 'q',
+      $this->config['sorting']['param'] ?? 'sort',
+    ];
+
+    foreach ($this->config['taxonomies'] ?? [] as $taxonomy) {
+      $params[] = $taxonomy['param'];
+    }
+
+    return array_values(array_unique($params));
+  }
+
+  /**
+   * Currently active known params as [param => value], minus exclusions
+   */
+  protected function activeKnownParams(array $except = []): array
+  {
+    $active = [];
+
+    foreach ($this->knownParams() as $param) {
+      if (in_array($param, $except, true)) {
+        continue;
+      }
+      $value = get($param);
+      if ($value !== null && $value !== '') {
+        $active[$param] = $value;
+      }
+    }
+
+    return $active;
+  }
+
+  public function getUrlBuilder(): UrlBuilder
+  {
+    if ($this->urlBuilder === null) {
+      $this->urlBuilder = new UrlBuilder($this->page, $this->knownParams());
+    }
+
+    return $this->urlBuilder;
   }
 
   protected function generateSnippets($collection, $totalCount = null)
   {
     $snippets = [];
+    $urls = $this->getUrlBuilder();
     $pagination = $collection->pagination();
     $actualTotalCount = $totalCount ?? $collection->count();
 
-    // Config params
     $paginationParam = $this->config['pagination']['param'] ?? 'p';
     $searchParam = $this->config['search']['param'] ?? 'q';
-    $currentSearch = get($searchParam, '');
+    $sortParam = $this->config['sorting']['param'] ?? 'sort';
+    $currentSearch = $this->currentSearch();
 
     // ========== SEARCH DATA ==========
     $searchData = [
@@ -410,35 +309,52 @@ class CollectionController
       'config' => $this->config,
       'searchParam' => $searchParam,
       'currentSearch' => $currentSearch,
-      'hasSearch' => !empty($currentSearch),
+      'hasSearch' => $currentSearch !== '',
       'placeholder' => $this->config['search']['placeholder'] ?? t('collection.search.placeholder', 'Search...'),
-      'clearUrl' => self::buildUrl($this->page, [$searchParam => ''], $paginationParam, $searchParam),
+      'clearUrl' => $urls->build([$searchParam => null, $paginationParam => null]),
+      'preservedParams' => $this->activeKnownParams([$searchParam, $paginationParam]),
     ];
 
     // ========== FILTERS DATA ==========
-    $taxonomies = $this->config['taxonomies'] ?? [];
     $processedTaxonomies = [];
 
-    foreach ($taxonomies as $taxonomy) {
+    foreach ($this->config['taxonomies'] ?? [] as $taxonomy) {
       $param = $taxonomy['param'];
       $field = $taxonomy['field'];
       $label = $taxonomy['label'] ?? ucfirst($param);
-      $currentValue = get($param);
+      $multiple = $taxonomy['multiple'] ?? false;
+      $currentValues = $this->currentFilterValues($param);
 
-      // Get unique values
-      $allItems = $this->page->children()->listed();
-      $values = $allItems->pluck($field, ',', true);
+      // Options reflect the full configured collection, not the current page
+      $values = $this->getBaseCollection()->pluck($field, ',', true);
 
-      if (empty($values)) continue;
+      if (empty($values)) {
+        continue;
+      }
 
       $filterOptions = [];
       foreach ($values as $value) {
-        if (empty(trim($value))) continue;
+        $value = trim((string) $value);
+        if ($value === '') {
+          continue;
+        }
+
+        $isActive = in_array($value, $currentValues, true);
+
+        if ($multiple) {
+          $nextValues = $isActive
+          ? array_values(array_diff($currentValues, [$value]))
+          : array_merge($currentValues, [$value]);
+          $urlValue = $nextValues === [] ? null : implode(',', $nextValues);
+        } else {
+          $urlValue = $isActive ? null : $value;
+        }
+
         $filterOptions[] = [
           'value' => $value,
           'label' => $value,
-          'isActive' => $currentValue === $value,
-          'url' => self::buildUrl($this->page, [$param => $value], $paginationParam, $searchParam),
+          'isActive' => $isActive,
+          'url' => $urls->build([$param => $urlValue, $paginationParam => null]),
           'param' => $param
         ];
       }
@@ -447,9 +363,11 @@ class CollectionController
         'param' => $param,
         'field' => $field,
         'label' => $label,
-        'currentValue' => $currentValue,
-        'allUrl' => self::buildUrl($this->page, [$param => null], $paginationParam, $searchParam),
-        'hasActiveFilter' => !empty($currentValue),
+        'multiple' => $multiple,
+        'currentValue' => $currentValues === [] ? null : implode(',', $currentValues),
+        'currentValues' => $currentValues,
+        'allUrl' => $urls->build([$param => null, $paginationParam => null]),
+        'hasActiveFilter' => $currentValues !== [],
         'options' => $filterOptions
       ];
     }
@@ -460,7 +378,19 @@ class CollectionController
       'collection' => $collection,
       'taxonomies' => $processedTaxonomies,
       'hasActiveFilters' => $this->hasActiveFilters(),
-      'clearAllUrl' => $this->page->url(),
+      'clearAllUrl' => $urls->build(array_fill_keys($this->knownParams(), null)),
+    ];
+
+    // ========== SORTING DATA ==========
+    $sortingOptions = $this->config['sorting']['options'] ?? [];
+    $sortingData = [
+      'page' => $this->page,
+      'config' => $this->config,
+      'sortParam' => $sortParam,
+      'options' => $sortingOptions,
+      'currentSort' => $this->currentSortKey() ?? ($this->config['sorting']['default'] ?? null),
+      'shouldRender' => ($this->config['enableSorting'] ?? false) && count($sortingOptions) > 1,
+      'preservedParams' => $this->activeKnownParams([$sortParam, $paginationParam]),
     ];
 
     // ========== PAGINATION DATA ==========
@@ -488,6 +418,7 @@ class CollectionController
       $currentPage = $pagination->page();
       $range = $this->config['pagination']['range'] ?? 5;
       $rangePages = $pagination->range($range);
+      $disabledSuffix = ' (' . t('collection.pagination.disabled', 'disabled') . ')';
 
       $paginationData = array_merge($paginationData, [
         'hasPrevPage' => $hasPrevPage,
@@ -495,15 +426,15 @@ class CollectionController
         'currentPage' => $currentPage,
         'totalPages' => $pagination->pages(),
         'rangePages' => $rangePages,
-        'firstPageUrl' => !$hasPrevPage ? '#' : self::buildUrl($this->page, [$paginationParam => null], $paginationParam),
-        'prevPageUrl' => !$hasPrevPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->prevPage() > 1 ? $pagination->prevPage() : null], $paginationParam),
-        'nextPageUrl' => !$hasNextPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->nextPage()], $paginationParam),
-        'lastPageUrl' => !$hasNextPage ? '#' : self::buildUrl($this->page, [$paginationParam => $pagination->lastPage()], $paginationParam),
-        'pageUrls' => array_combine($rangePages, array_map(fn($p) => self::buildUrl($this->page, [$paginationParam => $p > 1 ? $p : null], $paginationParam), $rangePages)),
-        'firstPageLabel' => t('collection.pagination.first', 'Go to first page'),
-        'prevPageLabel' => t('collection.pagination.prev', 'Go to previous page'),
-        'nextPageLabel' => t('collection.pagination.next', 'Go to next page'),
-        'lastPageLabel' => t('collection.pagination.last', 'Go to last page'),
+        'firstPageUrl' => !$hasPrevPage ? '#' : $urls->build([$paginationParam => null]),
+        'prevPageUrl' => !$hasPrevPage ? '#' : $urls->build([$paginationParam => $pagination->prevPage() > 1 ? $pagination->prevPage() : null]),
+        'nextPageUrl' => !$hasNextPage ? '#' : $urls->build([$paginationParam => $pagination->nextPage()]),
+        'lastPageUrl' => !$hasNextPage ? '#' : $urls->build([$paginationParam => $pagination->lastPage()]),
+        'pageUrls' => array_combine($rangePages, array_map(fn ($p) => $urls->build([$paginationParam => $p > 1 ? $p : null]), $rangePages)),
+        'firstPageLabel' => t('collection.pagination.first', 'Go to first page') . (!$hasPrevPage ? $disabledSuffix : ''),
+        'prevPageLabel' => t('collection.pagination.prev', 'Go to previous page') . (!$hasPrevPage ? $disabledSuffix : ''),
+        'nextPageLabel' => t('collection.pagination.next', 'Go to next page') . (!$hasNextPage ? $disabledSuffix : ''),
+        'lastPageLabel' => t('collection.pagination.last', 'Go to last page') . (!$hasNextPage ? $disabledSuffix : ''),
         'firstPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-first' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
         'prevPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
         'nextPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
@@ -530,7 +461,7 @@ class CollectionController
       'page' => $this->page,
       'config' => $this->config,
       'collection' => $collection,
-      'items' => $this->prepareItemsWithIndex($collection),
+      'items' => $collection->values(),
       'isEmpty' => $actualTotalCount === 0,
       'hasActiveFilters' => $this->hasActiveFilters(),
     ];
@@ -539,19 +470,24 @@ class CollectionController
     $snippetDataMap = [
       'search' => $searchData,
       'filters' => $filtersData,
+      'sorting' => $sortingData,
       'pagination' => $paginationData,
       'indicator' => $indicatorData,
       'items' => $itemsData,
     ];
 
+    $featureFlags = [
+      'search' => 'enableSearch',
+      'filters' => 'enableFilters',
+      'sorting' => 'enableSorting',
+      'indicator' => 'enableIndicator',
+      'pagination' => 'enablePagination',
+    ];
+
     foreach ($this->config['snippets'] as $key => $snippetName) {
-      // Skip disabled features
-      $featureFlags = [
-        'search' => 'enableSearch',
-        'filters' => 'enableFilters',
-        'indicator' => 'enableIndicator',
-        'pagination' => 'enablePagination',
-      ];
+      if ($key === 'wrapper' || $key === 'item') {
+        continue;
+      }
 
       if (isset($featureFlags[$key]) && !($this->config[$featureFlags[$key]] ?? true)) {
         $snippets[$key] = '';
@@ -565,116 +501,75 @@ class CollectionController
     return $snippets;
   }
 
-  protected function prepareItemsWithIndex($collection)
-  {
-    // Return pages directly as an array of Page objects
-    return $collection->values();
-  }
-
-  protected function getActiveFilters()
-  {
-    $filters = [];
-    foreach ($this->config['taxonomies'] as $taxonomy) {
-      $value = get($taxonomy['param']) ?? param($taxonomy['param']);
-      if ($value) {
-        $filters[$taxonomy['param']] = [
-          'label' => $taxonomy['label'],
-          'value' => $value,
-          'clearUrl' => self::buildUrl(
-              $this->page,
-              [$taxonomy['param'] => null],
-              $this->config['pagination']['param'] ?? 'p',
-              $this->config['search']['param'] ?? 'q'
-          )
-        ];
-      }
-    }
-    return $filters;
-  }
-
+  /**
+   * Whether search or any configured filter is active
+   */
   protected function hasActiveFilters()
   {
-    $searchParam = $this->config['search']['param'] ?? 'q';
-    $search = get($searchParam);
-    if ($search) {
+    if ($this->currentSearch() !== '') {
       return true;
     }
 
-    foreach ($this->config['taxonomies'] as $taxonomy) {
-      if (get($taxonomy['param']) ?? param($taxonomy['param'])) {
+    foreach ($this->config['taxonomies'] ?? [] as $taxonomy) {
+      if ($this->currentFilterValues($taxonomy['param']) !== []) {
         return true;
       }
     }
-    return false;
-  }
-
-  protected function isAjaxRequest()
-  {
-    // Check for htmx request, scoped to this instance so that several
-    // collection managers can live on the same page
-    $htmxParam = get('htmx');
-    if ($htmxParam) {
-      return $htmxParam === ($this->config['instanceId'] ?? '') ? 'htmx' : false;
-    }
-    if (isset($_SERVER['HTTP_HX_REQUEST'])) {
-      return 'htmx';
-    }
-
-    // Check for legacy JSON request
-    if (get('json') && (
-          ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest' ||
-          strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false
-      )) {
-      return 'json';
-    }
 
     return false;
   }
 
-  protected function handleAjaxRequest($collection, $snippets)
+  /**
+   * Whether the current request is an htmx fragment request for THIS instance.
+   *
+   * htmx sends the id of the swap target in the HX-Target header; each
+   * instance owns the "<instanceId>-content" element, which makes the check
+   * multi-instance safe without polluting URLs with extra params.
+   */
+  protected function isHtmxRequest(): bool
   {
-    $requestType = $this->isAjaxRequest();
-
-    // Handle htmx requests - return HTML fragment
-    if ($requestType === 'htmx') {
-      return $this->handleHtmxRequest($collection, $snippets);
+    $target = $_SERVER['HTTP_HX_TARGET'] ?? null;
+    if ($target !== null) {
+      return $target === ($this->config['instanceId'] ?? '') . '-content';
     }
 
-    // Handle legacy JSON requests
-    return $this->handleJsonRequest($collection, $snippets);
+    // Legacy support for links generated with an explicit htmx param
+    return get('htmx') === ($this->config['instanceId'] ?? '');
   }
 
-  protected function handleHtmxRequest($collection, $snippets)
+  protected function renderHtmxFragment($snippets)
   {
     while (ob_get_level() > 0) {
       ob_end_clean();
     }
 
     header('Content-Type: text/html; charset=utf-8');
+    header('Vary: HX-Target');
 
-    // Return the HTML content that htmx will swap
     $html = '';
 
-    // Search section
     if ($this->config['enableSearch'] ?? true) {
       $html .= '<div class="' . trim($this->config['containers']['search'] ?? '', '.') . '">';
       $html .= $snippets['search'] ?? '';
       $html .= '</div>';
     }
 
-    // Filters section
     if ($this->config['enableFilters'] ?? true) {
       $html .= '<div class="' . trim($this->config['containers']['filters'] ?? '', '.') . '">';
       $html .= $snippets['filters'] ?? '';
       $html .= '</div>';
     }
 
-    // Items section
-    $html .= '<div class="' . trim($this->config['containers']['items'] ?? '', '.') . '" data-replacementtop="true" data-offset="100">';
+    if ($this->config['enableSorting'] ?? false) {
+      $html .= '<div class="' . trim($this->config['containers']['sorting'] ?? '', '.') . '">';
+      $html .= $snippets['sorting'] ?? '';
+      $html .= '</div>';
+    }
+
+    $html .= '<div class="' . trim($this->config['containers']['items'] ?? '', '.') . '">';
     $html .= $snippets['items'] ?? '';
     $html .= '</div>';
 
-    // Pagination and indicator
     $html .= '<div class="collection-pagination-wrapper">';
     $html .= $snippets['pagination'] ?? '';
     $html .= $snippets['indicator'] ?? '';
@@ -682,119 +577,6 @@ class CollectionController
 
     echo $html;
     exit;
-  }
-
-  protected function handleJsonRequest($collection, $snippets)
-  {
-    header('Content-Type: application/json');
-
-    $replacements = [];
-
-    foreach ($this->config['replacements'] as $replacement) {
-      $snippetKey = $replacement['snippet'];
-      if (isset($snippets[$snippetKey])) {
-        $replacements[] = array_merge($replacement, [
-          'data' => $snippets[$snippetKey]
-        ]);
-      }
-    }
-
-    echo json_encode([
-      'collection' => $collection,
-      'snippets' => $snippets,
-      'replacements' => $replacements
-    ]);
-    exit;
-  }
-
-    /**
-     * Helper method to build URLs with preserved parameters
-     */
-  public static function buildUrl($page, $params = [], $paginationParam = null, $searchParam = null)
-  {
-    // Use defaults if not provided
-    $paginationParam = $paginationParam ?? 'p';
-    $searchParam = $searchParam ?? 'q';
-
-    $currentParams = [];
-
-        // Preserve search query
-    if ($search = get($searchParam)) {
-      $currentParams[$searchParam] = $search;
-    }
-
-        // Preserve taxonomy filters - get all current GET parameters except pagination
-    foreach ($_GET as $key => $value) {
-      if ($key !== $paginationParam && $key !== 'json' && $key !== 'htmx' && $value) {
-        $currentParams[$key] = $value;
-      }
-    }
-
-        // Merge with new parameters (new ones override current ones)
-    $allParams = array_merge($currentParams, $params);
-
-        // Remove empty/null parameters
-    $allParams = array_filter($allParams, function ($value) {
-        return $value !== null && $value !== '';
-    });
-
-    $url = $page->url();
-    if (!empty($allParams)) {
-      $url .= '?' . http_build_query($allParams);
-    }
-
-    return $url;
-  }
-
-  /**
-   * Get validated configuration object
-   *
-   * Creates a CollectionConfig DTO from the current config array.
-   * This provides type-safe access to configuration with validation.
-   *
-   * @return CollectionConfig
-   * @throws InvalidConfigurationException if configuration is invalid
-   */
-  public function getValidatedConfig(): CollectionConfig
-  {
-    if ($this->validatedConfig === null) {
-      $this->validatedConfig = CollectionConfig::fromArray([
-        'pagination' => $this->config['pagination'] ?? [],
-        'search' => $this->config['search'] ?? [],
-        'filter' => ['taxonomies' => $this->config['taxonomies'] ?? []],
-        'enableJs' => $this->config['enableJs'] ?? true,
-        'snippets' => $this->config['snippets'] ?? [],
-        'sortBy' => $this->config['sorting']['default'] ?? null,
-        'sortDirection' => $this->config['sorting']['direction'] ?? 'desc',
-      ]);
-    }
-
-    return $this->validatedConfig;
-  }
-
-  /**
-   * Validate that the collection source is valid
-   *
-   * @param mixed $collection The collection to validate
-   * @return void
-   * @throws CollectionNotFoundException if collection is invalid
-   */
-  protected function validateCollectionSource($collection): void
-  {
-    if ($collection === null) {
-      throw CollectionNotFoundException::undefinedSource(
-        is_string($this->config['collection'])
-          ? $this->config['collection']
-          : 'closure'
-      );
-    }
-
-    if (!is_object($collection) || !method_exists($collection, 'count')) {
-      throw CollectionNotFoundException::invalidType(
-        'collection',
-        is_object($collection) ? get_class($collection) : gettype($collection)
-      );
-    }
   }
 
   /**
@@ -811,5 +593,13 @@ class CollectionController
   public function getConfig(): array
   {
     return $this->config;
+  }
+
+  /**
+   * Get the query used by process(), for debugging
+   */
+  public function getQuery(): ?CollectionQuery
+  {
+    return $this->query;
   }
 }

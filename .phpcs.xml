@@ -52,4 +52,18 @@
     </properties>
   </rule>
 
+  <!-- Templates mix PHP and HTML; indentation follows the markup. -->
+  <rule ref="Generic.WhiteSpace.ScopeIndent">
+    <exclude-pattern>/snippets/*</exclude-pattern>
+    <exclude-pattern>/demo/site/*</exclude-pattern>
+  </rule>
+  <rule ref="Generic.Arrays.ArrayIndent">
+    <exclude-pattern>/snippets/*</exclude-pattern>
+    <exclude-pattern>/demo/site/*</exclude-pattern>
+  </rule>
+  <rule ref="PSR12.Files.FileHeader">
+    <exclude-pattern>/snippets/*</exclude-pattern>
+    <exclude-pattern>/demo/site/*</exclude-pattern>
+  </rule>
+
 </ruleset>

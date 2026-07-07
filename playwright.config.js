@@ -60,7 +60,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'cd demo && php -S localhost:8000 -t . 2>/dev/null',
+    command: 'cd demo && php -S localhost:8000 kirby/router.php 2>/dev/null',
     url: 'http://localhost:8000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

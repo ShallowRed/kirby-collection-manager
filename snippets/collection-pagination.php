@@ -50,10 +50,10 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-first',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasPrevPage ? $firstPageUrl . (strpos($firstPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+      'hx-get' => $htmxEnabled && $hasPrevPage ? $firstPageUrl : null,
       'hx-target' => $htmxEnabled && $hasPrevPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasPrevPage ? $htmxSwap : null,
-      'hx-push-url' => $htmxEnabled && $hasPrevPage ? $firstPageUrl : null
+      'hx-push-url' => $htmxEnabled && $hasPrevPage ? 'true' : null
 ])) ?>>
         <span
           <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--first', 'aria-hidden' => 'true']) ?>></span>
@@ -70,10 +70,10 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-prev',
       'aria-disabled' => !$hasPrevPage ? 'true' : null,
       'tabindex' => !$hasPrevPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasPrevPage ? $prevPageUrl . (strpos($prevPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+      'hx-get' => $htmxEnabled && $hasPrevPage ? $prevPageUrl : null,
       'hx-target' => $htmxEnabled && $hasPrevPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasPrevPage ? $htmxSwap : null,
-      'hx-push-url' => $htmxEnabled && $hasPrevPage ? $prevPageUrl : null
+      'hx-push-url' => $htmxEnabled && $hasPrevPage ? 'true' : null
 ])) ?>>
         <span
           <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--prev', 'aria-hidden' => 'true']) ?>></span>
@@ -96,10 +96,10 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-page-' . $pageNum,
       'tabindex' => $isCurrentPage ? '-1' : null,
       'aria-label' => $pageLabel,
-      'hx-get' => $htmxEnabled && !$isCurrentPage ? $pageUrl . (strpos($pageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+      'hx-get' => $htmxEnabled && !$isCurrentPage ? $pageUrl : null,
       'hx-target' => $htmxEnabled && !$isCurrentPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && !$isCurrentPage ? $htmxSwap : null,
-      'hx-push-url' => $htmxEnabled && !$isCurrentPage ? $pageUrl : null
+      'hx-push-url' => $htmxEnabled && !$isCurrentPage ? 'true' : null
 ])) ?>>
         <?php echo esc($pageNum, 'html') ?>
       </a>
@@ -115,10 +115,10 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-next',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasNextPage ? $nextPageUrl . (strpos($nextPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+      'hx-get' => $htmxEnabled && $hasNextPage ? $nextPageUrl : null,
       'hx-target' => $htmxEnabled && $hasNextPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasNextPage ? $htmxSwap : null,
-      'hx-push-url' => $htmxEnabled && $hasNextPage ? $nextPageUrl : null
+      'hx-push-url' => $htmxEnabled && $hasNextPage ? 'true' : null
 ])) ?>>
         <span
           <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--next', 'aria-hidden' => 'true']) ?>></span>
@@ -135,10 +135,10 @@ $htmxSwap = 'innerHTML show:window:top';
       'data-testid' => 'collection-pagination-last',
       'aria-disabled' => !$hasNextPage ? 'true' : null,
       'tabindex' => !$hasNextPage ? '-1' : null,
-      'hx-get' => $htmxEnabled && $hasNextPage ? $lastPageUrl . (strpos($lastPageUrl, '?') !== false ? '&' : '?') . 'htmx=' . rawurlencode($instanceId) : null,
+      'hx-get' => $htmxEnabled && $hasNextPage ? $lastPageUrl : null,
       'hx-target' => $htmxEnabled && $hasNextPage ? $htmxTarget : null,
       'hx-swap' => $htmxEnabled && $hasNextPage ? $htmxSwap : null,
-      'hx-push-url' => $htmxEnabled && $hasNextPage ? $lastPageUrl : null
+      'hx-push-url' => $htmxEnabled && $hasNextPage ? 'true' : null
 ])) ?>>
         <span
           <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--last', 'aria-hidden' => 'true']) ?>></span>
