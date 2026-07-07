@@ -25,7 +25,7 @@ class CollectionController
     $defaultConfig = $this->getDefaultConfig();
 
     // Merge nested option groups so partial overrides keep the defaults
-    foreach (['snippets', 'containers', 'search', 'pagination', 'sorting'] as $group) {
+    foreach (['snippets', 'containers', 'classes', 'search', 'pagination', 'sorting'] as $group) {
       if (isset($config[$group]) && is_array($config[$group])) {
         $config[$group] = array_merge($defaultConfig[$group], $config[$group]);
       }
@@ -65,6 +65,32 @@ class CollectionController
       'enableIndicator' => true,
       'enablePagination' => true,
       'enableJs' => true,
+      'enableCss' => false,
+      // Extra classes appended to the default BEM classes of each element,
+      // for utility-CSS workflows (Tailwind, UnoCSS, DaisyUI...)
+      'classes' => [
+        'wrapper' => '',
+        'search' => '',
+        'searchInput' => '',
+        'searchSubmit' => '',
+        'searchClear' => '',
+        'filters' => '',
+        'filterGroup' => '',
+        'filterLabel' => '',
+        'filter' => '',
+        'filterActive' => '',
+        'filtersClear' => '',
+        'sorting' => '',
+        'sortingLabel' => '',
+        'sortingSelect' => '',
+        'items' => '',
+        'item' => '',
+        'empty' => '',
+        'pagination' => '',
+        'paginationItem' => '',
+        'paginationIcon' => '',
+        'indicator' => '',
+      ],
       'containers' => [
         'wrapper' => '.collection-manager',
         'items' => '.collection-items',
@@ -397,8 +423,12 @@ class CollectionController
     $showPagination = $pagination ? $pagination->total() > $pagination->limit() : false;
     $shouldShowPagination = $showPagination && $pagination && !($pagination->limit() > 0 && $pagination->total() === 0);
 
+    $customClasses = $this->config['classes'] ?? [];
+    $customItemClass = trim((string)($customClasses['paginationItem'] ?? ''));
+    $customItemSuffix = $customItemClass === '' ? '' : ' ' . $customItemClass;
+
     $cssClasses = [
-      'nav' => 'collection-pagination',
+      'nav' => trim('collection-pagination ' . ($customClasses['pagination'] ?? '')),
       'item' => 'collection-pagination__item',
       'icon' => 'collection-pagination__icon'
     ];
@@ -435,10 +465,10 @@ class CollectionController
         'prevPageLabel' => t('collection.pagination.prev', 'Go to previous page') . (!$hasPrevPage ? $disabledSuffix : ''),
         'nextPageLabel' => t('collection.pagination.next', 'Go to next page') . (!$hasNextPage ? $disabledSuffix : ''),
         'lastPageLabel' => t('collection.pagination.last', 'Go to last page') . (!$hasNextPage ? $disabledSuffix : ''),
-        'firstPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-first' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
-        'prevPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
-        'nextPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
-        'lastPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-last' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : ''),
+        'firstPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-first' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : '') . $customItemSuffix,
+        'prevPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasPrevPage ? ' ' . $cssClasses['item'] . '--disabled' : '') . $customItemSuffix,
+        'nextPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-sibling' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : '') . $customItemSuffix,
+        'lastPageClasses' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-last' . (!$hasNextPage ? ' ' . $cssClasses['item'] . '--disabled' : '') . $customItemSuffix,
         'paginationParam' => $paginationParam,
       ]);
     }

@@ -24,7 +24,7 @@ if (!$shouldRender || !$item) {
 ?>
 
 <article <?php echo attr([
-  'class' => 'collection-item',
+  'class' => trim('collection-item ' . ($config['classes']['item'] ?? '')),
   'data-id' => $item->id(),
   'data-order' => $orderIndex,
   'data-testid' => 'collection-item-' . $item->id()

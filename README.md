@@ -172,16 +172,96 @@ same name in `site/snippets/`.
 
 ## Styling
 
-Include the default stylesheet (CSS custom properties, dark mode via
-`prefers-color-scheme` or a `.cm-dark` class):
+Three levels of customization, from lightest to fullest. They compose freely.
+
+### 1. Default stylesheet + CSS variables
+
+Enable the bundled stylesheet (injected once, however many instances):
+
+```php
+CollectionController::handle($page, [
+  'enableCss' => true,
+  // ...
+]);
+```
+
+Or include it manually:
 
 ```php
 <?= css(kirby()->plugin('shallowred/collection-manager')->asset('collection-manager.css')->url()) ?>
 ```
 
-Override any `--cm-*` variable in your own stylesheet, or skip the file
-entirely and style the BEM classes (`.collection-manager`, `.collection-item`,
-`.collection-filter`, `.collection-pagination__item`, …) yourself.
+The whole file lives in the `collection-manager` [cascade layer](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer),
+so **any rule in your own stylesheet overrides it** — no specificity fights.
+Theme it by overriding the `--cm-*` variables:
+
+```css
+:root {
+  --cm-color-bg-active: #a86f1c;      /* brand color for active states */
+  --cm-border-radius-pill: 4px;       /* square-ish filter pills */
+  --cm-grid-min-width: 320px;         /* wider item cards */
+}
+```
+
+Dark mode follows `prefers-color-scheme` automatically, or force it with a
+`.cm-dark` class (also honors `[data-theme="dark"]`).
+
+<details>
+<summary>All CSS variables</summary>
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `--cm-color-primary` | `#333` | Main text |
+| `--cm-color-secondary` | `#6c757d` | Muted text |
+| `--cm-color-border` | `#ddd` | Borders |
+| `--cm-color-bg` | `#fff` | Surfaces |
+| `--cm-color-bg-hover` | `#f5f5f5` | Hover surfaces |
+| `--cm-color-bg-muted` | `#f8f9fa` | Muted surfaces (pills, buttons) |
+| `--cm-color-bg-active` | `#007bff` | Active filter / current page |
+| `--cm-color-text-on-active` | `#fff` | Text on active background |
+| `--cm-color-link` / `--cm-color-link-hover` | `#007bff` / `#0056b3` | Links |
+| `--cm-color-danger` | `#dc3545` | Clear-filters link |
+| `--cm-color-info-bg` | `#e3f2fd` | "Searching for" banner |
+| `--cm-color-shadow` | `rgba(0,0,0,.1)` | Card hover shadow |
+| `--cm-spacing-xs/sm/md/lg/xl` | `.25/.5/1/1.5/2rem` | Spacing scale |
+| `--cm-font-size-sm/base/lg` | `.875/1/1.125rem` | Type scale |
+| `--cm-border-radius-sm/md/pill` | `4px/8px/20px` | Radii |
+| `--cm-transition-fast/normal` | `.15s/.2s ease` | Transitions |
+| `--cm-search-max-width` | `400px` | Search field width |
+| `--cm-item-image-height` | `200px` | Card image height |
+| `--cm-pagination-button-size` | `2.5rem` | Pagination buttons |
+| `--cm-grid-min-width` | `280px` | Items grid min column |
+
+</details>
+
+### 2. Custom classes (Tailwind / UnoCSS / DaisyUI)
+
+The `classes` config appends your utility classes to every element the plugin
+renders — the default BEM classes stay in place, so behavior, tests and the
+default stylesheet keep working:
+
+```php
+CollectionController::handle($page, [
+  'classes' => [
+    'item' => 'card bg-base-100 shadow-sm',
+    'filter' => 'badge badge-outline',
+    'filterActive' => 'badge-primary',
+    'sortingSelect' => 'select select-sm',
+    'searchInput' => 'input input-bordered',
+  ],
+  // ...
+]);
+```
+
+Available keys: `wrapper`, `search`, `searchInput`, `searchSubmit`,
+`searchClear`, `filters`, `filterGroup`, `filterLabel`, `filter`,
+`filterActive`, `filtersClear`, `sorting`, `sortingLabel`, `sortingSelect`,
+`items`, `item`, `empty`, `pagination`, `paginationItem`, `paginationIcon`,
+`indicator`.
+
+### 3. Custom snippets
+
+For full control over the markup, override any snippet (see below).
 
 ## How the AJAX layer works
 

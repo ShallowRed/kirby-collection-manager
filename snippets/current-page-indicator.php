@@ -15,7 +15,7 @@ if (!$shouldRender || empty($indicatorText)) {
 ?>
 
 <p <?php echo attr([
-  'class' => 'current-page-indicator',
+  'class' => trim('current-page-indicator ' . ($config['classes']['indicator'] ?? '')),
   'role' => 'status',
   'aria-live' => 'polite'
 ]) ?>>

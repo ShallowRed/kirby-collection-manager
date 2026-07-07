@@ -11,8 +11,9 @@ $isEmpty = $isEmpty ?? empty($items);
 $hasActiveFilters = $hasActiveFilters ?? false;
 ?>
 
+<?php $classes = $config['classes'] ?? []; ?>
 <?php if (!$isEmpty) : ?>
-  <div class="collection-items__list" data-testid="collection-items">
+  <div class="<?= esc(trim('collection-items__list ' . ($classes['items'] ?? ''))) ?>" data-testid="collection-items">
     <?php foreach ($items as $index => $item) : ?>
       <?php snippet($config['snippets']['item'] ?? 'collection-item', [
         'item' => $item,
@@ -22,7 +23,7 @@ $hasActiveFilters = $hasActiveFilters ?? false;
     <?php endforeach ?>
   </div>
 <?php else : ?>
-  <div class="collection-empty" data-testid="collection-empty">
+  <div class="<?= esc(trim('collection-empty ' . ($classes['empty'] ?? ''))) ?>" data-testid="collection-empty">
     <div class="collection-empty__icon">📝</div>
     <h3 class="collection-empty__title"><?= t('collection.empty.title', 'No items found') ?></h3>
     <p class="collection-empty__message">

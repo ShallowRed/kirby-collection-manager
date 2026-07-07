@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.0 — 2026-07-07
+
+### Added
+
+- `classes` config map: append custom utility classes (Tailwind, UnoCSS,
+  DaisyUI…) to every element the plugin renders, while keeping the default
+  BEM classes intact. Keys cover wrapper, search, filters, sorting, items,
+  item, empty state, pagination and indicator.
+- `enableCss` config: auto-inject the bundled stylesheet once per page.
+- Default styles for the sorting control and the multi-select active pill
+  (small × indicator).
+
+### Changed
+
+- The bundled stylesheet is wrapped in the `collection-manager` cascade
+  layer: any unlayered site rule now overrides it without specificity fights.
+- Manual dark mode also honors `[data-theme="dark"]`.
+- The demo showcases the `classes` map with DaisyUI on top of the default
+  stylesheet.
+
 ## 1.0.0 — 2026-07-07
 
 First tagged release. Consolidates the plugin on a single, tested pipeline.

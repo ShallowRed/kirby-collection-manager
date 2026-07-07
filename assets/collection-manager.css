@@ -1,13 +1,18 @@
 /**
- * Kirby Collection Manager - CSS Custom Properties
- * 
- * Override these variables to customize the appearance of the collection manager.
- * Add to your site's CSS before including this file:
- * 
+ * Kirby Collection Manager - default styles
+ *
+ * Everything lives in the `collection-manager` cascade layer, so any
+ * unlayered rule in your own stylesheet wins without specificity fights.
+ * Customize by overriding the --cm-* variables:
+ *
  * :root {
  *   --cm-color-primary: #your-color;
  * }
  */
+
+@layer collection-manager;
+
+@layer collection-manager {
 
 :root {
   /* Colors */
@@ -481,3 +486,60 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   Sorting
+   ========================================================================== */
+
+.collection-sorting {
+  margin-bottom: var(--cm-spacing-md);
+}
+
+.collection-sorting__form {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cm-spacing-sm);
+}
+
+.collection-sorting__label {
+  font-size: var(--cm-font-size-sm);
+  color: var(--cm-color-secondary);
+}
+
+.collection-sorting__select {
+  padding: var(--cm-spacing-xs) var(--cm-spacing-sm);
+  font-size: var(--cm-font-size-sm);
+  color: var(--cm-color-primary);
+  background: var(--cm-color-bg);
+  border: var(--cm-border-width) solid var(--cm-color-border);
+  border-radius: var(--cm-border-radius-sm);
+  transition: border-color var(--cm-transition-fast);
+}
+
+.collection-sorting__select:hover,
+.collection-sorting__select:focus {
+  border-color: var(--cm-color-bg-active);
+}
+
+.collection-sorting__submit {
+  padding: var(--cm-spacing-xs) var(--cm-spacing-sm);
+  font-size: var(--cm-font-size-sm);
+  border: var(--cm-border-width) solid var(--cm-color-border);
+  border-radius: var(--cm-border-radius-sm);
+  background: var(--cm-color-bg);
+  color: var(--cm-color-primary);
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   Multi-select filters
+   ========================================================================== */
+
+.collection-filter--multiple.collection-filter--active::after {
+  content: "\00d7";
+  margin-left: var(--cm-spacing-xs);
+  font-weight: var(--cm-font-weight-bold);
+  opacity: 0.8;
+}
+
+} /* @layer collection-manager */

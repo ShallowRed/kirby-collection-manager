@@ -15,6 +15,7 @@ $placeholder = $placeholder ?? t('collection.search.placeholder', 'Search...');
 $clearUrl = $clearUrl ?? $page->url();
 $preservedParams = $preservedParams ?? [];
 
+$classes = $config['classes'] ?? [];
 $htmxEnabled = $config['enableJs'] ?? true;
 $instanceId = $config['instanceId'] ?? 'collection';
 $htmxTarget = '#' . $instanceId . '-content';
@@ -23,7 +24,7 @@ $searchUrl = $page->url();
 
 ?>
 
-<div class="collection-search" data-testid="collection-search">
+<div class="<?= esc(trim('collection-search ' . ($classes['search'] ?? ''))) ?>" data-testid="collection-search">
   <form <?php echo attr(array_filter([
     'class' => 'collection-search__form',
     'action' => $searchUrl,
@@ -54,13 +55,13 @@ $searchUrl = $page->url();
         'value' => $currentSearch,
         'placeholder' => $placeholder,
         'autocomplete' => 'off',
-        'class' => 'collection-search__input',
+        'class' => trim('collection-search__input ' . ($classes['searchInput'] ?? '')),
         'data-testid' => 'collection-search-input'
       ]) ?>>
 
       <button <?php echo attr([
         'type' => 'submit',
-        'class' => 'collection-search__submit',
+        'class' => trim('collection-search__submit ' . ($classes['searchSubmit'] ?? '')),
         'data-testid' => 'collection-search-submit'
       ]) ?>>
         <span class="collection-search__submit-text"><?= t('collection.search.submit', 'Search') ?></span>
@@ -74,7 +75,7 @@ $searchUrl = $page->url();
     <?php if ($hasSearch) : ?>
       <a <?php echo attr(array_filter([
         'href' => $clearUrl,
-        'class' => 'collection-search__clear',
+        'class' => trim('collection-search__clear ' . ($classes['searchClear'] ?? '')),
         'title' => t('collection.search.clear', 'Clear search'),
         'data-testid' => 'collection-search-clear',
         'hx-get' => $htmxEnabled ? $clearUrl : null,

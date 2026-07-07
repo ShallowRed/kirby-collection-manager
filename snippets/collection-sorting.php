@@ -18,6 +18,7 @@ if (!$shouldRender) {
   return;
 }
 
+$classes = $config['classes'] ?? [];
 $htmxEnabled = $config['enableJs'] ?? true;
 $instanceId = $config['instanceId'] ?? 'collection';
 $htmxTarget = '#' . $instanceId . '-content';
@@ -27,7 +28,7 @@ $selectId = $instanceId . '-sorting';
 
 ?>
 
-<div class="collection-sorting" data-testid="collection-sorting">
+<div class="<?= esc(trim('collection-sorting ' . ($classes['sorting'] ?? ''))) ?>" data-testid="collection-sorting">
   <form <?php echo attr(array_filter([
     'class' => 'collection-sorting__form',
     'action' => $sortingUrl,
@@ -48,14 +49,14 @@ $selectId = $instanceId . '-sorting';
 
     <label <?php echo attr([
       'for' => $selectId,
-      'class' => 'collection-sorting__label'
+      'class' => trim('collection-sorting__label ' . ($classes['sortingLabel'] ?? ''))
     ]) ?>>
       <?= t('collection.sorting.label', 'Sort by') ?>
     </label>
     <select <?php echo attr([
       'id' => $selectId,
       'name' => $sortParam,
-      'class' => 'collection-sorting__select',
+      'class' => trim('collection-sorting__select ' . ($classes['sortingSelect'] ?? '')),
       'data-testid' => 'collection-sorting-select'
     ]) ?>>
       <?php foreach ($options as $value => $label) : ?>

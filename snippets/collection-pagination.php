@@ -28,6 +28,12 @@ $prevPageClasses = $prevPageClasses ?? $cssClasses['item'];
 $nextPageClasses = $nextPageClasses ?? $cssClasses['item'];
 $lastPageClasses = $lastPageClasses ?? $cssClasses['item'];
 
+$classes = $config['classes'] ?? [];
+$iconSuffix = trim((string)($classes['paginationIcon'] ?? ''));
+$iconSuffix = $iconSuffix === '' ? '' : ' ' . $iconSuffix;
+$itemSuffix = trim((string)($classes['paginationItem'] ?? ''));
+$itemSuffix = $itemSuffix === '' ? '' : ' ' . $itemSuffix;
+
 $htmxEnabled = $config['enableJs'] ?? true;
 $instanceId = $config['instanceId'] ?? 'collection';
 $htmxTarget = '#' . $instanceId . '-content';
@@ -56,7 +62,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'hx-push-url' => $htmxEnabled && $hasPrevPage ? 'true' : null
 ])) ?>>
         <span
-          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--first', 'aria-hidden' => 'true']) ?>></span>
+          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--first' . $iconSuffix, 'aria-hidden' => 'true']) ?>></span>
         <span <?php echo attr(['class' => 'sr-only']) ?>><?php echo esc($firstPageLabel, 'html') ?></span>
       </a>
     </li>
@@ -76,14 +82,14 @@ $htmxSwap = 'innerHTML show:window:top';
       'hx-push-url' => $htmxEnabled && $hasPrevPage ? 'true' : null
 ])) ?>>
         <span
-          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--prev', 'aria-hidden' => 'true']) ?>></span>
+          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--prev' . $iconSuffix, 'aria-hidden' => 'true']) ?>></span>
         <span <?php echo attr(['class' => 'sr-only']) ?>><?php echo esc($prevPageLabel, 'html') ?></span>
       </a>
     </li>
 
     <!-- Page Numbers -->
     <?php foreach ($rangePages as $pageNum) : ?>
-    <li <?php echo attr(['class' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-number']) ?>>
+    <li <?php echo attr(['class' => $cssClasses['item'] . ' ' . $cssClasses['item'] . '--to-number' . $itemSuffix]) ?>>
       <?php
     $pageLabel = $currentPage === $pageNum ? 'Current page, page ' . $pageNum : 'Go to page ' . $pageNum;
     $isCurrentPage = $currentPage === $pageNum;
@@ -121,7 +127,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'hx-push-url' => $htmxEnabled && $hasNextPage ? 'true' : null
 ])) ?>>
         <span
-          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--next', 'aria-hidden' => 'true']) ?>></span>
+          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--next' . $iconSuffix, 'aria-hidden' => 'true']) ?>></span>
         <span <?php echo attr(['class' => 'sr-only']) ?>><?php echo esc($nextPageLabel, 'html') ?></span>
       </a>
     </li>
@@ -141,7 +147,7 @@ $htmxSwap = 'innerHTML show:window:top';
       'hx-push-url' => $htmxEnabled && $hasNextPage ? 'true' : null
 ])) ?>>
         <span
-          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--last', 'aria-hidden' => 'true']) ?>></span>
+          <?php echo attr(['class' => $cssClasses['icon'] . ' ' . $cssClasses['icon'] . '--last' . $iconSuffix, 'aria-hidden' => 'true']) ?>></span>
         <span <?php echo attr(['class' => 'sr-only']) ?>><?php echo esc($lastPageLabel, 'html') ?></span>
       </a>
     </li>

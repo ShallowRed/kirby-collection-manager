@@ -6,9 +6,15 @@
  * Uses htmx for AJAX interactions
  */
 
-$cssClass = trim($config['containers']['wrapper'] ?? '', '.');
+$classes = $config['classes'] ?? [];
+$cssClass = trim(trim($config['containers']['wrapper'] ?? '', '.') . ' ' . ($classes['wrapper'] ?? ''));
 $instanceId = $config['instanceId'] ?? 'collection';
 ?>
+
+<?php if (($config['enableCss'] ?? false) && !defined('COLLECTION_MANAGER_CSS')) : ?>
+<?php define('COLLECTION_MANAGER_CSS', true) ?>
+<?= css(kirby()->plugin('shallowred/collection-manager')->asset('collection-manager.css')->url()) ?>
+<?php endif ?>
 
 <?php if ($config['enableJs'] ?? true) : ?>
 <script>
