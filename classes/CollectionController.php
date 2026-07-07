@@ -264,9 +264,11 @@ class CollectionController
   }
 
   /**
-   * Legacy process method - maintained for backwards compatibility
+   * Active processing path, used by CollectionController::handle().
    *
-   * @deprecated Use processWithQuery() for new implementations
+   * Note: processWithQuery() is an unfinished alternative pipeline that is not
+   * called anywhere yet and does NOT scope htmx requests per instance; port the
+   * instanceId handling from this method before switching over.
    */
   public function process()
   {
