@@ -1,227 +1,224 @@
 # Kirby Collection Manager
 
-Drop-in AJAX-powered collections for Kirby CMS. Search, filter, paginate — all with smooth transitions and zero JavaScript to write.
+AJAX-powered collection listings for Kirby CMS: search, filters, sorting and
+pagination, rendered server-side and enhanced with [htmx](https://htmx.org).
+Works without JavaScript, supports several independent collections on the same
+page, and ships with sensible default snippets you can override.
 
-## ✨ Features
-
-- **Instant Search** — Real-time filtering as users type
-- **Smart Filters** — Taxonomy-based filtering that just works
-- **AJAX Pagination** — Smooth page transitions, URLs stay bookmarkable
-- **Dark Mode** — Automatic theme switching, or control it yourself
-- **Multi-language** — English, French, German built-in
-- **Accessible** — Proper ARIA labels, keyboard navigation, screen reader support
-- **Progressive** — Works without JavaScript, enhances with htmx
-
-## 🚀 Quick Start
+## Installation
 
 ```bash
 composer require shallowred/kirby-collection-manager
 ```
 
-Then in any template:
+Requires PHP 8.1+ and Kirby 4 or 5.
 
-```php
-<?php snippet('collection-manager', [
-    'collection' => $page->children()->listed()
-]) ?>
-```
+## Quick start
 
-That's it. You have search, filters, and pagination.
-
-## 📖 Configuration
-
-### Full Example
-
-```php
-<?php snippet('collection-manager', [
-    'collection' => $page->children()->listed(),
-    'config' => [
-        'search' => [
-            'fields' => ['title', 'text', 'author'],
-            'placeholder' => 'Find articles...'
-        ],
-        'taxonomies' => [
-            ['param' => 'category', 'field' => 'category', 'label' => 'Category'],
-            ['param' => 'year', 'field' => 'date', 'label' => 'Year']
-        ],
-        'pagination' => [
-            'limit' => 12
-        ],
-        'sorting' => [
-            'default' => 'date',
-            'direction' => 'desc'
-        ]
-    ]
-]) ?>
-```
-
-### Using a Controller
-
-For complex pages, use the controller pattern:
+The plugin follows Kirby's controller/template split. In a controller (page
+controller, snippet controller or block controller), hand your collection to
+`CollectionController::handle()`:
 
 ```php
 // site/controllers/blog.php
 <?php
+
 use KirbyCollectionManager\CollectionController;
 
 return function ($page) {
-    return CollectionController::handle($page, [
-        'collection' => $page->children()->listed(),
-        'config' => [
-            'search' => ['fields' => ['title', 'text']],
-            'taxonomies' => [
-                ['param' => 'category', 'field' => 'category', 'label' => 'Category']
-            ],
-            'pagination' => ['limit' => 6]
-        ]
-    ]);
+  return CollectionController::handle($page, [
+    'collection' => $page->children()->listed(),
+    'search' => [
+      'fields' => ['title', 'text'],
+    ],
+    'taxonomies' => [
+      ['param' => 'category', 'field' => 'category', 'label' => 'Category'],
+    ],
+    'pagination' => [
+      'limit' => 10,
+    ],
+  ]);
 };
 ```
 
+Then render the wrapper snippet in the template:
+
 ```php
 // site/templates/blog.php
-<?php snippet('collection-manager', compact('collection', 'config')) ?>
+<?php snippet('collection-manager', compact('collection', 'config', 'snippets')) ?>
 ```
 
-## 🎨 Styling
+That's it: search form, filter pills, paginated items — with AJAX swaps when
+JavaScript is available, plain links and form submits when it is not.
 
-### Include the CSS
+There is also a shorthand page method:
 
 ```php
-<?= css('media/plugins/kirby-collection-manager/collection-manager-v2.css') ?>
+$data = $page->collectionManager(['pagination' => ['limit' => 6]]);
 ```
 
-### Customize with CSS Variables
+## Configuration
 
-Override any property in your stylesheet:
-
-```css
-:root {
-    --cm-color-bg-active: #e74c3c;     /* Your brand color */
-    --cm-color-link: #e74c3c;
-    --cm-border-radius-pill: 4px;       /* Square-ish filters */
-    --cm-spacing-lg: 2rem;              /* More breathing room */
-}
-```
-
-### Dark Mode
-
-Automatic via system preferences. Or control manually:
-
-```html
-<body class="cm-dark">
-    <!-- Dark mode everywhere -->
-</body>
-```
-
-<details>
-<summary>All CSS Variables</summary>
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `--cm-color-primary` | `#333` | Main text |
-| `--cm-color-secondary` | `#6c757d` | Muted text |
-| `--cm-color-bg` | `#fff` | Background |
-| `--cm-color-bg-active` | `#007bff` | Active state |
-| `--cm-color-border` | `#ddd` | Borders |
-| `--cm-spacing-sm` | `0.5rem` | Small gaps |
-| `--cm-spacing-md` | `1rem` | Medium gaps |
-| `--cm-spacing-lg` | `1.5rem` | Large gaps |
-| `--cm-border-radius-sm` | `4px` | Buttons |
-| `--cm-border-radius-pill` | `20px` | Filter pills |
-
-</details>
-
-## 🌍 Translations
-
-Built-in support for English, French, and German. Add your own:
+All keys are optional; defaults shown below.
 
 ```php
-// site/config/config.php
-return [
-    'translations' => [
-        'es' => [
-            'collection.search.placeholder' => 'Buscar...',
-            'collection.empty.title' => 'Sin resultados',
-            'collection.filters.clear' => 'Borrar filtros'
-        ]
-    ]
-];
+CollectionController::handle($page, [
+  // The collection to manage: a Kirby collection object, or 'children'
+  'collection' => 'children',
+  'collectionMethod' => 'listed',   // used when collection is resolved from the page
+
+  'search' => [
+    'fields' => ['title', 'text'],  // fields to search
+    'placeholder' => null,          // defaults to the translated placeholder
+    'param' => 'q',                 // query param
+  ],
+
+  'taxonomies' => [
+    [
+      'param' => 'category',        // query param
+      'field' => 'category',        // content field (comma-separated values supported)
+      'label' => 'Category',
+      'multiple' => false,          // true = multi-select (toggleable pills, comma-separated param)
+    ],
+  ],
+
+  'pagination' => [
+    'limit' => 10,
+    'param' => 'p',                 // use a distinct param per instance on multi-collection pages
+    'range' => 5,                   // number of page links
+  ],
+
+  'sorting' => [
+    'default' => 'date',            // field, or 'field:direction'
+    'direction' => 'desc',
+    'options' => [],                // sort options offered to the visitor (whitelist)
+    'param' => 'sort',
+  ],
+
+  'enableSearch' => true,
+  'enableFilters' => true,
+  'enableSorting' => false,         // requires sorting.options
+  'enableIndicator' => true,
+  'enablePagination' => true,
+  'enableJs' => true,               // set false to disable htmx entirely
+
+  'snippets' => [                   // override any snippet by name
+    'wrapper' => 'collection-manager',
+    'items' => 'collection-items',
+    'item' => 'collection-item',
+    'pagination' => 'collection-pagination',
+    'filters' => 'collection-filters',
+    'search' => 'collection-search',
+    'sorting' => 'collection-sorting',
+    'indicator' => 'current-page-indicator',
+  ],
+]);
 ```
 
-## 🔧 Custom Templates
+### Visitor-facing sorting
 
-Override any component by creating snippets in your site:
-
-```
-site/snippets/
-├── collection-item.php        # How each item looks
-├── collection-search.php      # Search form
-├── collection-filters.php     # Filter pills
-└── collection-pagination.php  # Page navigation
-```
-
-### Example: Custom Item
+Offer sort options with the `field:direction` syntax (direction defaults to
+`sorting.direction`). Requested values are validated against this whitelist.
 
 ```php
-<!-- site/snippets/collection-item.php -->
+'sorting' => [
+  'default' => 'date',
+  'direction' => 'desc',
+  'options' => [
+    'date' => 'Newest first',
+    'date:asc' => 'Oldest first',
+    'title:asc' => 'Title A→Z',
+  ],
+],
+'enableSorting' => true,
+```
+
+### Multi-select filters
+
+Set `'multiple' => true` on a taxonomy to let visitors combine values. Options
+toggle in and out of a comma-separated param (`?category=Design,Engineering`)
+and items match when any of their values match.
+
+### Several collections on one page
+
+Give each instance its own pagination param — everything else (fragment
+targeting, URL generation) is scoped automatically:
+
+```php
+CollectionController::handle($page, ['pagination' => ['param' => 'page-news'], ...]);
+CollectionController::handle($page, ['pagination' => ['param' => 'page-events'], ...]);
+```
+
+## Custom item template
+
+Point `snippets.item` to your own snippet; it receives `$item` (the page),
+`$orderIndex` and `$config`:
+
+```php
+'snippets' => ['item' => 'article-card'],
+```
+
+```php
+<!-- site/snippets/article-card.php -->
 <article class="card">
-    <?php if ($image = $item->cover()->toFile()): ?>
-        <img src="<?= $image->thumb(['width' => 400])->url() ?>" alt="">
-    <?php endif ?>
-    <h3><?= $item->title() ?></h3>
-    <p><?= $item->text()->excerpt(100) ?></p>
-    <a href="<?= $item->url() ?>">Read more →</a>
+  <h3><a href="<?= $item->url() ?>"><?= $item->title()->esc() ?></a></h3>
+  <p><?= $item->text()->excerpt(100) ?></p>
 </article>
 ```
 
-## 🪝 Hooks
+Any other snippet (search, filters, pagination, sorting, indicator, wrapper)
+can be overridden the same way, or globally by creating a snippet with the
+same name in `site/snippets/`.
 
-Tap into the collection lifecycle:
+## Styling
 
-```php
-// site/config/config.php
-return [
-    'hooks' => [
-        // Filter before display
-        'collection-manager.query.before' => function ($collection, $config) {
-            return $collection->filter(fn($p) => $p->isPublished()->toBool());
-        },
-        
-        // Track views
-        'collection-manager.query.after' => function ($collection, $debug) {
-            Analytics::track('browse', ['count' => $collection->count()]);
-        }
-    ]
-];
-```
-
-Available hooks: `config.resolved`, `query.before`, `query.after`, `snippets.before`, `snippets.after`, `response.before`
-
-## 🐛 Debug Mode
-
-See what's happening under the hood:
+Include the default stylesheet (CSS custom properties, dark mode via
+`prefers-color-scheme` or a `.cm-dark` class):
 
 ```php
-// site/config/config.php
-return [
-    'shallowred.collection-manager' => [
-        'debug' => true
-    ]
-];
+<?= css(kirby()->plugin('shallowred/collection-manager')->asset('collection-manager.css')->url()) ?>
 ```
 
-Opens a console panel showing execution times, applied filters, and collection counts at each stage.
+Override any `--cm-*` variable in your own stylesheet, or skip the file
+entirely and style the BEM classes (`.collection-manager`, `.collection-item`,
+`.collection-filter`, `.collection-pagination__item`, …) yourself.
 
-## 📋 Requirements
+## How the AJAX layer works
 
-- Kirby 4.0+
-- PHP 8.1+
+The wrapper snippet loads a bundled htmx (once per page, however many
+instances there are) and every control targets the instance's content
+element. The server detects fragment requests through the `HX-Target` header,
+so URLs stay clean and shareable — a reload of any URL renders the full page.
+Fragment responses send `Vary: HX-Target` for cache correctness. Out-of-range
+page numbers (e.g. a stale link to page 3 of a filtered list) are clamped to
+the nearest valid page instead of erroring.
 
-## 📄 License
+## Translations
 
-MIT — Use it however you like.
+English, French and German are built in. Override or add languages in your
+config:
 
----
+```php
+'translations' => [
+  'es' => [
+    'collection.search.placeholder' => 'Buscar...',
+    'collection.empty.title' => 'Sin resultados',
+  ],
+],
+```
 
-**[View on GitHub](https://github.com/ShallowRed/kirby-collection-manager)** · **[Report Issues](https://github.com/ShallowRed/kirby-collection-manager/issues)**
+## Demo & tests
+
+A demo site lives in `demo/` (requires a Kirby core in `demo/kirby`, not
+versioned). The Playwright end-to-end suite runs against it:
+
+```bash
+npm install
+npm test
+```
+
+PHP linting: `composer lint`.
+
+## License
+
+MIT
