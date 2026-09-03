@@ -22,7 +22,10 @@ $classes = $config['classes'] ?? [];
 $htmxEnabled = $config['enableJs'] ?? true;
 $instanceId = $config['instanceId'] ?? 'collection';
 $htmxTarget = '#' . $instanceId . '-content';
-$htmxSwap = 'innerHTML show:window:top';
+// Scroll back to this listing rather than the top of the document: a
+// collection often sits far down the page, and jumping to the window top
+// yanked the reader away from the very section they were interacting with.
+$htmxSwap = 'innerHTML show:#' . $instanceId . ':top';
 $sortingUrl = $page->url();
 $selectId = $instanceId . '-sorting';
 
